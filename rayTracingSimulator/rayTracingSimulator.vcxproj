@@ -74,12 +74,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ExternalIncludePath>C:\Users\user\source\repos\rayTracingSimulator\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>C:\Users\user\source\repos\rayTracingSimulator\lib;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>$(SolutionDir)include;$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ExternalIncludePath>C:\Users\user\source\repos\rayTracingSimulator\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>C:\Users\user\source\repos\rayTracingSimulator\lib;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>$(SolutionDir)include;$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
