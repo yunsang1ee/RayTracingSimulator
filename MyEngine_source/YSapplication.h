@@ -40,5 +40,3 @@ namespace ys
 		float frameCheck;
 	};
 }
-
-ys::Application app;

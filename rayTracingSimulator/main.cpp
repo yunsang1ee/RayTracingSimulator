@@ -6,7 +6,7 @@
 #include "..\\MyEngine_source\\YSapplication.h"
 #include "..\\MyEngine_source\\ysInputManager.h"
 #include "..\\MyEngine_source\\ysSceneManager.h"
-#include <gl/glad.c>
+#include <glad/glad.h>
 
 static float kWidth = 800, kHight = 800;
 static std::string vertexPath = "vertex.glsl";
