@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35312.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rayTracingSimulator", "rayTracingSimulator\rayTracingSimulator.vcxproj", "{B1F83CDD-52B9-48C0-B12B-A0B8C0691648}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyEngine_source", "MyEngine_source\MyEngine_source.vcxitems", "{033ABF51-E997-46D4-A204-BB6953E72881}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1F83CDD-52B9-48C0-B12B-A0B8C0691648}.Debug|x64.ActiveCfg = Debug|x64
+		{B1F83CDD-52B9-48C0-B12B-A0B8C0691648}.Debug|x64.Build.0 = Debug|x64
+		{B1F83CDD-52B9-48C0-B12B-A0B8C0691648}.Debug|x86.ActiveCfg = Debug|Win32
+		{B1F83CDD-52B9-48C0-B12B-A0B8C0691648}.Debug|x86.Build.0 = Debug|Win32
+		{B1F83CDD-52B9-48C0-B12B-A0B8C0691648}.Release|x64.ActiveCfg = Release|x64
+		{B1F83CDD-52B9-48C0-B12B-A0B8C0691648}.Release|x64.Build.0 = Release|x64
+		{B1F83CDD-52B9-48C0-B12B-A0B8C0691648}.Release|x86.ActiveCfg = Release|Win32
+		{B1F83CDD-52B9-48C0-B12B-A0B8C0691648}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CCD83341-F8AC-4270-8A76-4893189F401A}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		MyEngine_source\MyEngine_source.vcxitems*{033abf51-e997-46d4-a204-bb6953e72881}*SharedItemsImports = 9
+		MyEngine_source\MyEngine_source.vcxitems*{b1f83cdd-52b9-48c0-b12b-a0b8c0691648}*SharedItemsImports = 4
+	EndGlobalSection
+EndGlobal

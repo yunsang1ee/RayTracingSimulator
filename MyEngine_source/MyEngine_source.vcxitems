@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{033abf51-e997-46d4-a204-bb6953e72881}</ItemsProjectGuid>
+    <ItemsProjectName>MyEngine_source</ItemsProjectName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonInclude.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysAbsoluteScene.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysAnimation.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysAnimator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)YSapplication.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysBoxCollider2D.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysCamera.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysCircleCollider2D.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysCollider.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysCollisionManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysComponent.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysEntity.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysEnums.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysGameObject.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysInputManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysLayer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysMath.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysObject.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysRenderer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysResource.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysResources.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysRigidBody.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysScene.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysSceneManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysScript.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysSpriteRenderer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysTexture.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysTimer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysTransform.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysAbsoluteScene.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysAnimation.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysAnimator.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysBoxCollider2D.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysCamera.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysCircleCollider2D.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysCollider.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysCollisionManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysLayer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysMath.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)YSapplication.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysComponent.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysEntity.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysGameObject.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysInputManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysRenderer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysResource.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysResources.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysRigidBody.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysScene.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysSceneManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysScript.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysSpriteRenderer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysTexture.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysTimer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysTransform.cpp" />
+  </ItemGroup>
+</Project>
