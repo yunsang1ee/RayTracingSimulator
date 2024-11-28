@@ -19,9 +19,9 @@
 #include <random>
 
 #include "ysEnums.h"
-#include <gl/glm/glm/glm.hpp>
-#include <gl/glm/glm/fwd.hpp>
-#include <gl/glm/glm/ext.hpp>
+#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
+#include <glm/ext.hpp>
 
 //#ifdef _DEBUG
 //#pragma comment(lib, "..\\FMOD_SoundSystem\\lib\\Debug\\fmodL_vc.lib")
