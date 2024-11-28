@@ -28,6 +28,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ysEntity.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysEnums.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysGameObject.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysImgui_Manager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysInputManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysLayer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysMesh.h" />
@@ -52,6 +53,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ysCircleCollider2D.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ysCollider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ysCollisionManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysImgui_Manager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ysLayer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)YSapplication.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ysComponent.cpp" />

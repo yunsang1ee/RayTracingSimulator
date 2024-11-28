@@ -5,6 +5,7 @@
 //#include <gl/freeglut.h>
 //#include <gl/freeglut_ext.h>
 //#include <gl/freeglut_std.h>
+
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #pragma comment(lib, "glfw3.lib")
@@ -22,6 +23,11 @@
 #include <glm/glm.hpp>
 #include <glm/fwd.hpp>
 #include <glm/ext.hpp>
+
+
+
+
+
 
 //#ifdef _DEBUG
 //#pragma comment(lib, "..\\FMOD_SoundSystem\\lib\\Debug\\fmodL_vc.lib")

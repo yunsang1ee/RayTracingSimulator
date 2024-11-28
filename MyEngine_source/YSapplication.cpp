@@ -4,6 +4,7 @@
 #include "ysTimer.h"
 #include <ysResources.h>
 #include <ysCollisionManager.h>
+#include "ysImgui_Manager.h"
 //#include "ysSoundManager.h"
 
 namespace ys
@@ -54,6 +55,7 @@ namespace ys
 	{
 		CollisionManager::Update();
 		SceneManager::Update();
+		Imgui_Manager::Get_Imgui_Manager()->Update();
 		//SoundManager::Update();
 	}	
 
@@ -61,6 +63,7 @@ namespace ys
 	{
 		CollisionManager::LateUpdate();
 		SceneManager::LateUpdate();
+		Imgui_Manager::Get_Imgui_Manager()->LateUpdate();
 	}
 
 	void Application::Render()
@@ -70,6 +73,7 @@ namespace ys
 
 		//CollisionManager::Render(hBackDc);
 		SceneManager::Render(hBackDc);
+		Imgui_Manager::Get_Imgui_Manager()->Render();
 
 		glfwSetWindowTitle(window, (std::to_string(screen.x)
 			+ std::string(", ")
@@ -77,6 +81,8 @@ namespace ys
 			+ std::string(" | ")
 			+ std::to_string(1  / Timer::getDeltaTime())
 			).c_str());
+
+
 
 		//Timer::Render(hBackDc, screen);
 		if(isWinAPI) BitBlt(hDc, 0, 0, screen.x, screen.y, hBackDc, 0, 0, SRCCOPY);

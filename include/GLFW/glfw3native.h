@@ -91,6 +91,8 @@ extern "C" {
  * System headers and types
  *************************************************************************/
 
+
+
 #if !defined(GLFW_NATIVE_INCLUDE_NONE)
 
  #if defined(GLFW_EXPOSE_NATIVE_WIN32) || defined(GLFW_EXPOSE_NATIVE_WGL)
@@ -162,6 +164,8 @@ extern "C" {
  * Functions
  *************************************************************************/
 
+GLFWAPI HWND glfwGetWin32Window(GLFWwindow* window);
+
 #if defined(GLFW_EXPOSE_NATIVE_WIN32)
 /*! @brief Returns the adapter device name of the specified monitor.
  *
@@ -222,7 +226,7 @@ GLFWAPI const char* glfwGetWin32Monitor(GLFWmonitor* monitor);
  *
  *  @ingroup native
  */
-GLFWAPI HWND glfwGetWin32Window(GLFWwindow* window);
+//GLFWAPI HWND glfwGetWin32Window(GLFWwindow* window);
 #endif
 
 #if defined(GLFW_EXPOSE_NATIVE_WGL)

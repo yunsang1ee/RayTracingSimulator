@@ -3,6 +3,7 @@
 #include <sstream>
 #include <random>
 #include <string>
+#include"..\\MyEngine_source\\ysImgui_Manager.h"
 #include "..\\MyEngine_source\\YSapplication.h"
 #include "..\\MyEngine_source\\ysInputManager.h"
 #include "..\\MyEngine_source\\ysSceneManager.h"
@@ -28,25 +29,17 @@ int main(int argc, char** argv)
 	//_CrtSetBreakAlloc(919);
 	
 	//initialize GLFW(window utility)
-	glfwInit();
+	if (!glfwInit())
+	{ 
+		std::cerr << "Failed to initialize GLFW" << std::endl;
+		return -1;
+	}
+
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	//init window
-	//set window handle
-	std::random_device rd;
-	std::mt19937 mt(rd());
-	std::uniform_int_distribution<> uid(0);
-	std::string winName{ "Gradient Example" };
-	HWND hWnd{};
-	std::string winID;
-	do
-	{
-		hWnd = nullptr;
-		winID = winName + std::to_string(uid(rd));
-		hWnd = FindWindowA(NULL, winID.c_str());
-	} while (hWnd);
+	
 
 	GLFWwindow* window = glfwCreateWindow(kWidth, kHight, "Gradient Example", NULL, NULL);
 	if (window == NULL)
@@ -57,9 +50,6 @@ int main(int argc, char** argv)
 	}
 	glfwSetWindowPos(window, 600, 100);
 	glfwMakeContextCurrent(window);
-	hWnd = FindWindowA(NULL, winID.c_str());
-	SetWindowTextA(hWnd, winName.c_str());
-	glfwSwapInterval(0);
 
 	//initialize GLAD (func pointer)
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -67,6 +57,46 @@ int main(int argc, char** argv)
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+
+	HWND hWnd = glfwGetWin32Window(window);
+	if (hWnd == NULL)
+	{ 
+		std::cerr << "Failed to get Win32 window handle" << std::endl;
+		return -1;
+	} 
+	SetWindowTextA(hWnd, "Gradient Example");
+	glfwSwapInterval(0);
+
+	//init window
+//set window handle
+	std::random_device rd;
+	std::mt19937 mt(rd());
+	std::uniform_int_distribution<> uid(0);
+	std::string winName{ "Gradient Example" };
+	//HWND hWnd{};
+	std::string winID;
+	do
+	{
+		hWnd = nullptr;
+		winID = winName + std::to_string(uid(rd));
+		hWnd = FindWindowA(NULL, winID.c_str());
+	} while (hWnd); // 이거 순서 조금 바꿨어요 아래에서 해줌 - 대원
+
+
+	ys::Imgui_Manager::Get_Imgui_Manager()->Init(window);
+
+
+	glGetError();
+	// Clear any previous errors 
+	const GLubyte* version = glGetString(GL_VERSION);
+	if (version == NULL)
+	{
+		std::cerr << "Failed to get OpenGL version" << std::endl;
+		GLenum err = glGetError();
+		std::cerr << "OpenGL error occurred: " << err << std::endl;
+		return -1; 
+	}
+
 	//shader(glsl) initialize
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 	app.Init(hWnd, window, RECT(0, 0, kWidth, kHight), false);
@@ -83,13 +113,23 @@ int main(int argc, char** argv)
 	glfwSetKeyCallback(window, KeyCallback);
 	glfwSetCursorPosCallback(window, CursorPositionCallback);
 	glfwSetMouseButtonCallback(window, MouseButtonCallback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
 
 	//loop func
 	while (!glfwWindowShouldClose(window))
 	{
+
 		glfwPollEvents();
+
 		app.Run();
+
 	}
+
+
+
+	ys::Imgui_Manager::Get_Imgui_Manager()->Destroy(); // imgui 삭제 코드
+
 	app.Release();
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -154,26 +194,45 @@ std::string readFile(const std::string& path)
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (65 <= key && key <= 90)
-	{
-		if ((mods & GLFW_MOD_CAPS_LOCK)) mods ^= GLFW_MOD_SHIFT;
-		if (!(mods & GLFW_MOD_SHIFT)) key += 32;
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods); 
+	if (!ImGui::GetIO().WantCaptureKeyboard)
+	{ 
+		// ImGui가 입력을 캡처하지 않을 때 애플리케이션 입력 처리 
+		if (65 <= key && key <= 90) 
+		{
+			if ((mods & GLFW_MOD_CAPS_LOCK))
+			{
+				mods ^= GLFW_MOD_SHIFT;
+			}
+			if (!(mods & GLFW_MOD_SHIFT))
+			{
+				key += 32;
+			}
+		}
+		std::cout << key << " " << (char)key << " " << action << ' ' << std::bitset<8>(mods) << std::endl;
+		ys::InputManager::setKeyState(key, action & GLFW_REPEAT, action == GLFW_RELEASE);
 	}
-	std::cout << key << " " << (char)key << " " << action << ' ' << std::bitset<8>(mods) << std::endl;
-	ys::InputManager::setKeyState(key, action & GLFW_REPEAT, action == GLFW_RELEASE);
 }
 
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	std::cout << "Mouse: " << std::string((button == 0) ? "Left" : (button == 1) ? "Right" :
-		(button == 2) ? "Middle" : std::to_string(button))
-		<< ", Pos: " << ys::InputManager::getMousePosition().x << ", " << ys::InputManager::getMousePosition().y
-		<< " " << action << std::endl;
-	ys::InputManager::setKeyState(button + 0x80, action & GLFW_REPEAT, action == GLFW_RELEASE);
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+	if (!ImGui::GetIO().WantCaptureMouse) 
+	{ 
+		// ImGui가 입력을 캡처하지 않을 때 애플리케이션 입력 처리
+		std::cout << "Mouse: " << std::string((button == 0) ? "Left" : (button == 1) ? "Right" : (button == 2) ? "Middle" : std::to_string(button)) << ", Pos: " << ys::InputManager::getMousePosition().x << ", " << ys::InputManager::getMousePosition().y 
+			<< " " << action << std::endl;
+		ys::InputManager::setKeyState(button + 0x80, action & GLFW_REPEAT, action == GLFW_RELEASE); 
+	}
 }
 void CursorPositionCallback(GLFWwindow* window, double xPos, double yPos)
 {
-	ys::InputManager::setMousePosition(xPos, yPos);
+	ImGui_ImplGlfw_CursorPosCallback(window, xPos, yPos);
+	if (!ImGui::GetIO().WantCaptureMouse) 
+	{
+		// ImGui가 입력을 캡처하지 않을 때 애플리케이션 입력 처리
+		ys::InputManager::setMousePosition(xPos, yPos);
+	}
 }
 
 void FramebufferCallback(GLFWwindow* window, int w, int h)

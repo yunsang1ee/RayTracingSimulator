@@ -74,6 +74,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ysShader.cpp">
       <Filter>Resource\Shader</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysImgui_Manager.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)ysTimer.h">
@@ -161,6 +164,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ysShader.h">
       <Filter>Resource\Shader</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysImgui_Manager.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="source">
@@ -219,6 +225,9 @@
     </Filter>
     <Filter Include="Resource\Shader">
       <UniqueIdentifier>{56a38037-ebcc-4364-b0d6-822cdae5b0d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Imgui">
+      <UniqueIdentifier>{65961939-e262-4e48-bc7f-1da667557387}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
