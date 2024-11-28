@@ -2,7 +2,6 @@
 #include "ysComponent.h"
 namespace ys
 {
-	using namespace math;
 	class Transform : public Component
 	{
 	public:
@@ -14,19 +13,31 @@ namespace ys
 		void LateUpdate() override;
 		void Render(HDC hDC) override;
 
-		void SetPosition(const Vector2& pos) { position = pos; }
-		void SetScale(const Vector2& scale) { this->scale = scale; }
-		void SetRotation(const float& rotation) { this->rotation = rotation; }
+		void SetPosition(const glm::vec3& pos) { position = pos; }
+		void SetRotation(const glm::vec3& rotation) { this->rotation = rotation; }
+		void SetScale(const glm::vec3& scale) { this->scale = scale; }
 
-		Vector2 GetPosition() const { return position; }
-		Vector2 GetScale() const { return scale; }
-		float GetRotation() const { return rotation; }
+		glm::mat4 GetWorldMatrix() const { return worldMatrix; }
+		void SetWorldMatrix(const glm::mat4& matrix) { worldMatrix = matrix; }
 
+		glm::vec3 GetPosition() const { return position; }
+		glm::vec3 GetScale() const { return scale; }
+		glm::vec3 GetRotation() const { return rotation; }
+
+		inline glm::vec3 GetForward() const { return forward; }
+		inline glm::vec3 GetRight() const { return right; }
+		inline glm::vec3 GetUp() const { return up; }
+		
 	private:
-		Vector2 position;
-		Vector2 scale;
-		float rotation;
+		glm::vec3 position;
+		glm::vec3 scale;
+		glm::vec3 rotation;
+
+		glm::mat4 worldMatrix;
+
+		glm::vec3 forward;
+		glm::vec3 right;
+		glm::vec3 up;
 	};
 
 }
-

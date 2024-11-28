@@ -5,16 +5,15 @@
 
 namespace ys
 {
-	using namespace math;
 	RigidBody::RigidBody() : Component(enums::ComponentType::RigidBody)
 		, ground(false)
 		, mass(1.0f)
 		, friction(100.0f)
-		, force(Vector2::Zero)
-		, accelation(Vector2::Zero)
-		, limitVelocity(Vector2(500.0f, 1000.0f))
-		, velocity(Vector2::Zero)
-		, gravity(Vector2::Down * 6.80665f * 100.0f)
+		, force(glm::vec2())
+		, accelation(glm::vec2())
+		, limitVelocity(glm::vec2(500.0f, 1000.0f))
+		, velocity(glm::vec2())
+		, gravity(glm::vec2(0.0f, -1.0f) * 6.80665f * 100.0f)
 	{
 	}
 
@@ -31,9 +30,8 @@ namespace ys
 		accelation = force / mass;// f = ma
 		velocity += accelation * Timer::getDeltaTime();
 
-		Vector2 tickGravity = gravity;
-		tickGravity.nomalize();
-		float dot = Vector2::Dot(velocity, tickGravity);
+		glm::vec2 tickGravity = glm::normalize(gravity);
+		float dot = glm::dot(velocity, tickGravity);
 		tickGravity = tickGravity * dot;
 
 		if (ground)
@@ -41,30 +39,30 @@ namespace ys
 		else
 			velocity += gravity * Timer::getDeltaTime();
 
-		Vector2 sideVelocity = velocity - tickGravity;
-		if (limitVelocity.y < tickGravity.scalar())
-			tickGravity = tickGravity.nomalize() * limitVelocity.y;
+		glm::vec2 sideVelocity = velocity - tickGravity;
+		if (limitVelocity.y < glm::length(tickGravity))
+			tickGravity = glm::normalize(tickGravity) * limitVelocity.y;
 
-		if (limitVelocity.x < sideVelocity.scalar())
-			sideVelocity = sideVelocity.nomalize() * limitVelocity.x;
+		if (limitVelocity.x < glm::length(sideVelocity))
+			sideVelocity = glm::normalize(sideVelocity) * limitVelocity.x;
 
 		velocity = tickGravity + sideVelocity;
 
-		if (velocity != Vector2::Zero)
+		if (velocity != glm::vec2())
 		{
-			Vector2 tickFriction = -velocity;
-			tickFriction = tickFriction.nomalize() * friction * mass * Timer::getDeltaTime();
-			if (velocity.scalar() <= tickFriction.scalar())
-				velocity = Vector2::Zero;
+			glm::vec2 tickFriction = -velocity;
+			tickFriction = glm::normalize(tickFriction) * friction * mass * Timer::getDeltaTime();
+			if (glm::length(velocity) <= glm::length(tickFriction))
+				velocity = glm::vec2();
 			else
 				velocity += tickFriction;
 		}
 		auto tr = GetOwner()->GetComponent<Transform>();
-		Vector2 position = tr->GetPosition();
-		position += velocity * Timer::getDeltaTime();
+		glm::vec3 position = tr->GetPosition();
+		position += glm::vec3(velocity * Timer::getDeltaTime(), 0);
 		tr->SetPosition(position);
 
-		force = Vector2::Zero;
+		force = glm::vec2();
 	}
 
 	void RigidBody::LateUpdate()

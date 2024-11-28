@@ -8,14 +8,13 @@
 
 namespace ys
 {
-	Application::Application() : hWnd(nullptr), window(nullptr), shaderID(0), hDc(nullptr), hBackDc(nullptr), hBitmap(nullptr), screen{}, isWinAPI{}, frameCheck{} {}
+	Application::Application() : hWnd(nullptr), window(nullptr), hDc(nullptr), hBackDc(nullptr), hBitmap(nullptr), screen{}, isWinAPI{}, frameCheck{} {}
 
 	Application::~Application()
 	{
 	}
 
-	void Application::Init(HWND hWnd_, GLFWwindow* window, unsigned int ID
-		, RECT screenSize, bool isWinAPI)
+	void Application::Init(HWND hWnd_, GLFWwindow* window, RECT screenSize, bool isWinAPI)
 	{
 		this->isWinAPI = isWinAPI;
 		hWnd = hWnd_;
@@ -27,7 +26,6 @@ namespace ys
 		else
 		{
 			this->window = window;
-			shaderID = ID;
 		}
 			
 		setScreen(screenSize);
@@ -68,10 +66,7 @@ namespace ys
 	void Application::Render()
 	{
 		if(isWinAPI) PatBlt(hBackDc, 0, 0, screen.x, screen.y, WHITENESS);
-		else glClear(GL_COLOR_BUFFER_BIT);
-
-		//glColor3f(181.0f / 255.0f, 214.0f / 255.0f, 146.0f / 255.0f);
-		//glRectf(-1, -1, 1, 1);
+		else glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//CollisionManager::Render(hBackDc);
 		SceneManager::Render(hBackDc);

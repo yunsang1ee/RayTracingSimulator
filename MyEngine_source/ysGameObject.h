@@ -1,7 +1,6 @@
 #pragma once
 #include "CommonInclude.h"
 #include "ysComponent.h"
-using namespace ys::math;
 using namespace ys::enums;
 
 namespace ys::object

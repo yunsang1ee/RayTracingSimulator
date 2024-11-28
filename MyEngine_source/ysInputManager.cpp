@@ -6,10 +6,10 @@
 
 namespace ys
 {
-	constexpr WORD kKeyDataSize = 256;//Alt조합 상정
+	constexpr WORD kKeyDataSize = 350;//Alt조합 상정
 	//Ctrl과 Ctrl + Alt까지 상정하면 2048까지
 	std::vector<KeyState> InputManager::keys;
-	math::Vector2 InputManager::mousePosition;
+	glm::vec2 InputManager::mousePosition;
 
 	void InputManager::Init()
 	{
@@ -43,7 +43,7 @@ namespace ys
 		}
 	}
 
-	void InputManager::setKeyState(BYTE code, bool isPressed, bool isUp)
+	void InputManager::setKeyState(unsigned short code, bool isPressed, bool isUp)
 	{
 		if (isUp)
 			keys[code] |= kKeyUpBit;  //isUp이면 up

@@ -9,7 +9,7 @@
 
 namespace ys
 {
-	enum class Key : BYTE
+	enum class Key : unsigned short
 	{
 		//Num0 = '0', Num1, Num2, Num3, Num4, Num5, Num6, Num7, Num8, Num9,
 		//A = 'A', B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
@@ -18,7 +18,6 @@ namespace ys
 		LEFT_BUTTON = 0x80, RIGHT_BUTTON, MIDDLE_BUTTON,
 		//SHIFT = 0x80 + 3, CTRL, ALT,
 		//F1 = 0x80 + 6, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
-		//LEFT = 0x80 + 6 + 0x64, UP, RIGHT, DOWN,
 		//PAGE_UP, PAGE_DOWN, HOME, END, INSERT,
 	} ; // OpenGL not Use
 
@@ -35,17 +34,17 @@ namespace ys
 		static void BeforeUpdate();//메인 업데이트 이전 키 업데이트
 		static void AfterUpdate();//메인 업데이트 이후 키 업데이트
 		
-		static void setKeyState(BYTE code, bool isPressed, bool isUp);
+		static void setKeyState(unsigned short code, bool isPressed, bool isUp);
 		static void setMousePosition(int x, int y) { mousePosition = {(float)x, (float)y}; }
-		static math::Vector2 getMousePosition() { return mousePosition; }
+		static glm::vec2 getMousePosition() { return mousePosition; }
 
-		inline static bool getKeyDown(BYTE code) { return  (keys[static_cast<UINT>(code)] & kKeyDownBit) != 0; }
-		inline static bool getKey(BYTE code) { return  (keys[static_cast<UINT>(code)] & kKeyPressedBit) != 0; }
-		inline static bool getKeyUp(BYTE code) { return  (keys[static_cast<UINT>(code)] & kKeyUpBit); }
+		inline static bool getKeyDown(unsigned short code) { return  (keys[static_cast<UINT>(code)] & kKeyDownBit) != 0; }
+		inline static bool getKey(unsigned short code) { return  (keys[static_cast<UINT>(code)] & kKeyPressedBit) != 0; }
+		inline static bool getKeyUp(unsigned short code) { return  (keys[static_cast<UINT>(code)] & kKeyUpBit); }
 
-		inline static KeyState getKeyState(BYTE code) { return  keys[static_cast<UINT>(code)]; }
+		inline static KeyState getKeyState(unsigned short code) { return  keys[static_cast<UINT>(code)]; }
 	private:
 		static std::vector<KeyState> keys;
-		static math::Vector2 mousePosition;
+		static glm::vec2 mousePosition;
 	};
 }

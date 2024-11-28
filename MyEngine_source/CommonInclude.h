@@ -7,6 +7,7 @@
 //#include <gl/freeglut_std.h>
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
+#pragma comment(lib, "glfw3.lib")
 
 #include <vector>
 #include <string>
@@ -18,7 +19,9 @@
 #include <random>
 
 #include "ysEnums.h"
-#include "ysMath.h"
+#include <gl/glm/glm/glm.hpp>
+#include <gl/glm/glm/fwd.hpp>
+#include <gl/glm/glm/ext.hpp>
 
 //#ifdef _DEBUG
 //#pragma comment(lib, "..\\FMOD_SoundSystem\\lib\\Debug\\fmodL_vc.lib")
@@ -31,8 +34,6 @@
 //#include "..\\FMOD_SoundSystem\\inc\\fmod.hpp"
 //#include "..\\FMOD_SoundSystem\\inc\\fmod_common.h"
 //#include "..\\FMOD_SoundSystem\\inc\\fmod_codec.h"
-
-
 
 #include <mmsystem.h>
 #include <dinput.h>

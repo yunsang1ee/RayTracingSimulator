@@ -12,6 +12,9 @@ namespace ys
 	}
 	void CollisionManager::Update()
 	{
+	}
+	void CollisionManager::LateUpdate()
+	{
 		if (InputManager::getKeyDown(';'))
 		{
 			Collider::SetRender(!Collider::isRender());
@@ -23,9 +26,6 @@ namespace ys
 			for (UINT col = row; col < (UINT)LayerType::Max; ++col)
 				if (collisionLayerMatrix[row][col] == true)
 					LayerCollision(scene, static_cast<LayerType>(row), static_cast<LayerType>(col));
-	}
-	void CollisionManager::LateUpdate()
-	{
 	}
 	void CollisionManager::Render(HDC hDC)
 	{
@@ -109,11 +109,11 @@ namespace ys
 		auto LTr = left->GetOwner()->GetComponent<Transform>();
 		auto RTr = right->GetOwner()->GetComponent<Transform>();
 
-		auto LPosition = LTr->GetPosition() + left->GetOffset();
-		auto RPosition = RTr->GetPosition() + right->GetOffset();
+		auto LPosition = LTr->GetPosition() + glm::vec3(left->GetOffset(), 1);
+		auto RPosition = RTr->GetPosition() + glm::vec3(right->GetOffset(), 1);
 
-		auto LSize = left->GetSize() * 100;
-		auto RSize = right->GetSize() * 100;
+		auto LSize = glm::vec3(left->GetSize() * 100.0f, 1);
+		auto RSize = glm::vec3(right->GetSize() * 100.0f, 1);
 
 		auto LType = left->GetColliderType();
 		auto RType = right->GetColliderType();
@@ -133,7 +133,7 @@ namespace ys
 		{
 			auto LCicleCenter = LPosition + (LSize / 2.0f);
 			auto RCicleCenter = RPosition + (RSize / 2.0f);
-			float distance = (LCicleCenter - RCicleCenter).scalar();
+			float distance = glm::length(LCicleCenter - RCicleCenter);
 			if (distance < ((LSize.x / 2.0f) + (RSize.x / 2.0f)))
 			{
 				return true;

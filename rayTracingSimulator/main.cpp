@@ -9,8 +9,6 @@
 #include <glad/glad.h>
 
 static float kWidth = 800, kHight = 800;
-static std::string vertexPath = "vertex.glsl";
-static std::string fragmentPath = "fragment.glsl";
 
 ys::Application app;
 
@@ -71,10 +69,7 @@ int main(int argc, char** argv)
 	}
 	//shader(glsl) initialize
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
-
-	auto shaderID = CreateShader(vertexPath, fragmentPath);
-	if (shaderID == -1)	return -1;
-	app.Init(hWnd, window, shaderID, RECT(0, 0, kWidth, kHight), false);
+	app.Init(hWnd, window, RECT(0, 0, kWidth, kHight), false);
 	glViewport(0, 0, kWidth, kHight);
 
 	//set Scene
@@ -159,7 +154,12 @@ std::string readFile(const std::string& path)
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	std::cout << key << " " << (char)key << " " << action << std::endl;
+	if (65 <= key && key <= 90)
+	{
+		if ((mods & GLFW_MOD_CAPS_LOCK)) mods ^= GLFW_MOD_SHIFT;
+		if (!(mods & GLFW_MOD_SHIFT)) key += 32;
+	}
+	std::cout << key << " " << (char)key << " " << action << ' ' << std::bitset<8>(mods) << std::endl;
 	ys::InputManager::setKeyState(key, action & GLFW_REPEAT, action == GLFW_RELEASE);
 }
 

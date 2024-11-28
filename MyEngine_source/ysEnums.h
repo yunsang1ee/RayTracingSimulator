@@ -6,8 +6,11 @@ namespace ys::enums
 	{
 		None,
 		BackGround,
+		ChildObject,
 		Object,
+		PickedObject,
 		Effect,
+		Camera,
 		Mouse,
 		Max
 	};
@@ -22,8 +25,10 @@ namespace ys::enums
 	enum class ResourceType
 	{
 		Texture,
-		AudioClip,
+		Mesh,
 		Animation,
+		AudioClip,
+		Shader,
 		Prefab,
 		End
 	};

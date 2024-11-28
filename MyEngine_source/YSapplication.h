@@ -12,7 +12,7 @@ namespace ys
 
 		void Run();
 
-		void Init(HWND, GLFWwindow* window, unsigned int ID, RECT screenSize, bool isWinAPI = true);
+		void Init(HWND, GLFWwindow* window, RECT screenSize, bool isWinAPI = true);
 		void Update();
 		void LateUpdate();
 		void Render();
@@ -23,15 +23,13 @@ namespace ys
 
 		HWND getHWND() { return hWnd; }
 		GLFWwindow*  getWindow() { return window; }
-		unsigned int  getShaderID() { return shaderID; }
 		HDC getHDC() { return hDc; }
 		POINT getScreen() { return screen; }
-		math::Vector2 getScreenf() { return Vector2(static_cast<float>(screen.x), static_cast<float>(screen.y)); }
+		glm::vec2 getScreenf() { return glm::vec2(static_cast<float>(screen.x), static_cast<float>(screen.y)); }
 
 	private:
 		HWND hWnd;
 		GLFWwindow* window;
-		unsigned int shaderID;
 		HDC hDc;
 		HDC hBackDc;
 		HBITMAP hBitmap;

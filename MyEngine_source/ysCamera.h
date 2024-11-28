@@ -7,6 +7,17 @@ namespace ys
 	class Camera : public Component
 	{
 	public:
+		enum class ProjectionType
+		{
+			Perspective,
+			Orthographic
+		};
+
+		static glm::mat4 GetmainViewMatrix() { return mainViewMatrix; }
+		static glm::mat4 GetmainProjectionMatrix() { return mainProjectionMatrix; }
+		static void SetGpuViewMatrix(glm::mat4 matrix) { mainViewMatrix = matrix; }
+		static void SetGpuProjectionMatrix(glm::mat4 matrix) { mainProjectionMatrix = matrix; }
+
 		Camera();
 		~Camera();
 
@@ -15,33 +26,28 @@ namespace ys
 		virtual void LateUpdate() override;
 		virtual void Render(HDC hDC) override;
 
-		void SetMinMax(const Vector2& minPosition, const Vector2& maxPosition) 
+		void SetNearFar(const float& nearZ, const float& farZ)
 		{
-			this->minPosition = minPosition;
-			this->maxPosition = maxPosition;
+			this->nearZ = nearZ;
+			this->farZ = farZ;
 		}
-		Vector2 CalculatPosition(const Vector2& position) { return position - distance; }
-		Vector2 GetLookPosition() const { return lookPosition; }
-		void SetTarget(GameObject* target) { this->target = target; }
-		bool isXmin() const { return xMin; }
-		bool isXmax() const { return xMax; }
-		bool isYmin() const { return yMin; }
-		bool isYmax() const { return yMax; }
+
+		void CreateViewMatrix();
+		void CreateProjectionMatrix(ProjectionType);
 
 	private:
-		Vector2 distance;
-		Vector2 resolution;
-		Vector2 lookPosition;//카메라의 중앙 (rect left, top) + (resolution / 2)
+		static glm::mat4 mainViewMatrix;
+		static glm::mat4 mainProjectionMatrix;
 
-		Vector2 minPosition;//카메라 좌상단 제한
-		Vector2 maxPosition;//카메라 우하단 제한
+		ProjectionType projectionType;
 
-		bool xMin;
-		bool xMax;
-		bool yMin;
-		bool yMax;
+		glm::mat4 viewMatrix;
+		glm::mat4 projectionMatrix;
 
-		GameObject* target;
+		float aspectRatio;
+		float nearZ;
+		float farZ;
+		float size;
 	};
 }
 

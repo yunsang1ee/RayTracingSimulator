@@ -20,7 +20,7 @@ namespace ys::object
 	}
 
 	template <typename T>
-	static T* Instantiate(const enums::LayerType& type, const Vector2& position)
+	static T* Instantiate(const enums::LayerType& type, const glm::vec3& position)
 	{
 		T* gameObject = new T();
 		auto activeScene = SceneManager::GetActiveScene(); //현재 액티브씬의
@@ -34,7 +34,7 @@ namespace ys::object
 		return gameObject;
 	}
 	template <typename T>
-	static T* Instantiate(const enums::LayerType& type, const Vector2& position, const float& rotation)
+	static T* Instantiate(const enums::LayerType& type, const glm::vec2& position, const glm::vec3& rotation)
 	{
 		T* gameObject = new T();
 		auto activeScene = SceneManager::GetActiveScene(); //현재 액티브씬의

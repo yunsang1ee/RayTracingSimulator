@@ -1,6 +1,8 @@
 #pragma once
 #include "ysComponent.h"
 #include "ysTexture.h"
+#include "ysShader.h"
+#include <ysMesh.h>
 
 namespace ys
 {
@@ -15,29 +17,53 @@ namespace ys
 		void LateUpdate() override;
 		void Render(HDC hDC) override;
 
-		math::Vector2 GetSize() { return size; }
-		math::Vector2 GetOffsetLT() { return offsetLT; }
-		math::Vector2 GetOffsetRB() { return offsetRB; }
+		//glm::vec2 GetSize() { return size; }
+		//glm::vec2 GetOffsetLT() { return offsetLT; }
+		//glm::vec2 GetOffsetRB() { return offsetRB; }
 
 		graphics::Texture* GetTexture() { return texture; }
+		Mesh* GetMesh() { return mesh; }
 
 		void SetTexture(graphics::Texture* texture) { this->texture = texture; }
-		void SetOffset(const math::Vector2& LT, const math::Vector2& RB = math::Vector2::Zero)
-		{
-			this->offsetLT = LT;
-			this->offsetRB = RB;
+		void SetShader(graphics::Shader* shader) { this->shader = shader; }
+		void SetMesh(Mesh* mesh) { this->mesh = mesh; }
+		void AddLight(GameObject* light, glm::vec3 color) { lights.emplace_back(light, color); }
+		void DelLight(GameObject* light) 
+		{ 
+			lights.erase(remove_if(lights.begin(), lights.end()
+				, [&](const std::pair<GameObject*, glm::vec3>& val) {return val.first == light;})
+				, lights.end());
 		}
-		void SetSizeByTexture(const math::Vector2& size) { this->size = size; }
-		void SetSizeByScreen(const math::Vector2& size)
+		void SetLightColor(GameObject* light, glm::vec3 color) 
 		{
-			this->size.x = size.x / texture->GetWidth();
-			this->size.y = size.y / texture->GetHeight();
+			std::find_if(lights.begin(), lights.end(), [&](std::pair<GameObject*, glm::vec3>& val){
+				return val.first == light;
+				}
+			)->second = color;
 		}
+		glm::vec3 GetLightColor(GameObject* light) const 
+		{
+			return std::find_if(lights.begin(), lights.end(), [&](const std::pair<GameObject*, glm::vec3>& val){
+				return val.first == light;
+				}
+			)->second;
+		}
+		//void SetOffset(const glm::vec2& LT, const glm::vec2& RB = glm::vec2())
+		//{
+		//	this->offsetLT = LT;
+		//	this->offsetRB = RB;
+		//}
+		//void SetSizeByTexture(const glm::vec2& size) { this->size = size; }
+		//void SetSizeByScreen(const glm::vec2& size)
+		//{
+		//	this->size.x = size.x / texture->GetWidth();
+		//	this->size.y = size.y / texture->GetHeight();
+		//}
 
 	private:
 		graphics::Texture* texture;
-		math::Vector2 size;
-		math::Vector2 offsetLT;
-		math::Vector2 offsetRB;
+		graphics::Shader* shader;
+		Mesh* mesh;
+		std::vector<std::pair<GameObject*, glm::vec3>> lights;
 	};
 }

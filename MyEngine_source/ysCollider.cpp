@@ -7,7 +7,7 @@ namespace ys
 	UINT32 Collider::collisionID{ 1 };
 
 	Collider::Collider(enums::ColliderType type) : Component(enums::ComponentType::Collider)
-		, type(type), id(collisionID++), size(math::Vector2::One)
+		, type(type), id(collisionID++), size(glm::vec2(1.0f, 1.0f))
 	{
 	}
 	Collider::~Collider()

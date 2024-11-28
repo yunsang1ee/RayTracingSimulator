@@ -5,8 +5,6 @@
 
 namespace ys
 {
-	using namespace math;
-
 	BoxCollider2D::BoxCollider2D() : Collider(enums::ColliderType::Box2D)
 	{
 	}
@@ -28,9 +26,7 @@ namespace ys
 		{
 			auto tr = GetOwner()->GetComponent<Transform>();
 			auto position = tr->GetPosition();
-			if (renderer::mainCamera)
-				position = renderer::mainCamera->CalculatPosition(position);
-			Vector2 scale = tr->GetScale();
+			glm::vec2 scale = tr->GetScale();
 
 			auto offset = GetOffset();
 			auto brush = (HBRUSH)GetStockObject(NULL_BRUSH);

@@ -23,9 +23,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ysComponent.cpp">
       <Filter>Component</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)ysMath.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)ysLayer.cpp">
       <Filter>Layer</Filter>
     </ClCompile>
@@ -65,17 +62,17 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ysCollisionManager.cpp">
       <Filter>Component\Collider</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)ysAnimation.cpp">
-      <Filter>Resource\Animation</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)ysAbsoluteScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)ysAnimator.cpp">
-      <Filter>Component\Animator</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)ysRigidBody.cpp">
       <Filter>Component\RigidBody</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysMesh.cpp">
+      <Filter>Resource\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysShader.cpp">
+      <Filter>Resource\Shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -95,9 +92,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ysScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CommonInclude.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ysGameObject.h">
       <Filter>GameObject</Filter>
     </ClInclude>
@@ -105,9 +99,6 @@
       <Filter>Component</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ysEnums.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ysMath.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ysLayer.h">
@@ -152,17 +143,23 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ysCollisionManager.h">
       <Filter>Component\Collider</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ysAnimation.h">
-      <Filter>Resource\Animation</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ysAbsoluteScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ysAnimator.h">
-      <Filter>Component\Animator</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ysRigidBody.h">
       <Filter>Component\RigidBody</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonInclude.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysMesh.h">
+      <Filter>Resource\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysGraphics.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysShader.h">
+      <Filter>Resource\Shader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -211,17 +208,17 @@
     <Filter Include="Resource\Animation">
       <UniqueIdentifier>{e3fbcdcb-0862-4116-8516-94a841137312}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Component\Animator">
-      <UniqueIdentifier>{ef1b7ea2-d5b1-4ca2-b720-9dbd443d26f5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Component\RigidBody">
       <UniqueIdentifier>{5c90d864-c09f-408c-8aa5-7a7b86f1f808}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource\Audio">
       <UniqueIdentifier>{4480dd29-ca6d-42fa-a1fd-63e934a85f04}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Component\Audio">
-      <UniqueIdentifier>{cd181372-5a13-4512-a96f-721132bf91c9}</UniqueIdentifier>
+    <Filter Include="Resource\Mesh">
+      <UniqueIdentifier>{70f60389-ce05-4f2c-b2f8-53129ec19157}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource\Shader">
+      <UniqueIdentifier>{56a38037-ebcc-4364-b0d6-822cdae5b0d8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
