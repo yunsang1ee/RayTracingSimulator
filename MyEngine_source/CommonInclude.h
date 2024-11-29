@@ -7,7 +7,12 @@
 //#include <gl/freeglut_std.h>
 
 #include <GLFW/glfw3.h>
+#ifdef _WIN32
+#ifndef GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif
 #include <GLFW/glfw3native.h>
+#endif
 #pragma comment(lib, "glfw3.lib")
 
 #include <vector>

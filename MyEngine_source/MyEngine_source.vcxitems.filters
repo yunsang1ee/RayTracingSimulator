@@ -11,12 +11,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ysEntity.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)ysInputManager.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)ysTimer.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)ysGameObject.cpp">
       <Filter>GameObject</Filter>
     </ClCompile>
@@ -75,16 +69,16 @@
       <Filter>Resource\Shader</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)ysImgui_Manager.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>Common\ysImgui_Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysInputManager.cpp">
+      <Filter>Common\InputManager</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysTimer.cpp">
+      <Filter>Common\Timer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ysTimer.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ysInputManager.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)YSapplication.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysEntity.h">
       <Filter>Common</Filter>
@@ -165,7 +159,13 @@
       <Filter>Resource\Shader</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ysImgui_Manager.h">
-      <Filter>Imgui</Filter>
+      <Filter>Common\ysImgui_Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysInputManager.h">
+      <Filter>Common\InputManager</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysTimer.h">
+      <Filter>Common\Timer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -226,8 +226,14 @@
     <Filter Include="Resource\Shader">
       <UniqueIdentifier>{56a38037-ebcc-4364-b0d6-822cdae5b0d8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Imgui">
-      <UniqueIdentifier>{65961939-e262-4e48-bc7f-1da667557387}</UniqueIdentifier>
+    <Filter Include="Common\ysImgui_Manager">
+      <UniqueIdentifier>{c7a2304c-4269-48b6-8eb5-7b39801c6a90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\InputManager">
+      <UniqueIdentifier>{8185c4e4-3ddf-428a-885f-b95100ebd94b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Timer">
+      <UniqueIdentifier>{71685b8b-6557-4227-af58-d037f278c72f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

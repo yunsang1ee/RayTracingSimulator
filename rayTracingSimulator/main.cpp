@@ -194,13 +194,13 @@ std::string readFile(const std::string& path)
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods); 
-	if (!ImGui::GetIO().WantCaptureKeyboard)
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods); // aka. On GUI textBox -> On Flag
+	if (!ImGui::GetIO().WantCaptureKeyboard) // And Down Flag
 	{ 
 		// ImGui가 입력을 캡처하지 않을 때 애플리케이션 입력 처리 
 		if (65 <= key && key <= 90) 
 		{
-			if ((mods & GLFW_MOD_CAPS_LOCK))
+			if ((mods & GLFW_MOD_CAPS_LOCK))//TODO: ON CAPS_LOCK -> SHIFT FLAG REVERSE		
 			{
 				mods ^= GLFW_MOD_SHIFT;
 			}
