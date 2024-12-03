@@ -1,12 +1,6 @@
 #pragma once
 #include "CommonInclude.h"
 
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-#include "imgui/imgui_impl_opengl3_loader.h"
-
 namespace ys
 {
 	class Imgui_Manager

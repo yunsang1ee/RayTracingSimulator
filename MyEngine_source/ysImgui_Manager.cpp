@@ -1,6 +1,10 @@
 #include "ysImgui_Manager.h"
 
-
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_opengl3_loader.h"
 ys::Imgui_Manager* ys::Imgui_Manager::imgui_Manager = nullptr;
 
 ys::Imgui_Manager::Imgui_Manager()
@@ -23,19 +27,13 @@ void ys::Imgui_Manager::Init(GLFWwindow* window)
 
 void ys::Imgui_Manager::Update()
 {
-
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
+	ImGui::Begin("ViewPort");
 
-	ImGui::Begin("HI, Yoon Sang~");
-	ImGui::Text("I'm DaeWon Woohihi");
 	ImGui::End(); // 이거 꼭 해주자
-
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 }
 
 void ys::Imgui_Manager::LateUpdate()

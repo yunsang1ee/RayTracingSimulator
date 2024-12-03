@@ -70,7 +70,6 @@ namespace ys
 	{
 		if(isWinAPI) PatBlt(hBackDc, 0, 0, screen.x, screen.y, WHITENESS);
 		else glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		//CollisionManager::Render(hBackDc);
 		SceneManager::Render(hBackDc);
 		Imgui_Manager::Get_Imgui_Manager()->Render();
@@ -99,6 +98,7 @@ namespace ys
 		SceneManager::Release();
 		Resources::Release();
 		//SoundManager::Release();
+		ys::Imgui_Manager::Get_Imgui_Manager()->Destroy(); // imgui 삭제 코드
 	}
 
 	void Application::setScreen(RECT screenSize)

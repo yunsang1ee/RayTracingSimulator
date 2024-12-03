@@ -3,11 +3,20 @@
 #include <sstream>
 #include <random>
 #include <string>
+
 #include"..\\MyEngine_source\\ysImgui_Manager.h"
 #include "..\\MyEngine_source\\YSapplication.h"
 #include "..\\MyEngine_source\\ysInputManager.h"
 #include "..\\MyEngine_source\\ysSceneManager.h"
 #include <glad/glad.h>
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_opengl3_loader.h"
+#include "PlanetaryScene.h"
+#include <ysResources.h>
+#include <ysShader.h>
 
 static float kWidth = 800, kHight = 800;
 
@@ -97,13 +106,15 @@ int main(int argc, char** argv)
 		return -1; 
 	}
 
+	ys::Resources::Load<ys::graphics::Shader>(L"vc", L"vc");
+
 	//shader(glsl) initialize
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 	app.Init(hWnd, window, RECT(0, 0, kWidth, kHight), false);
 	glViewport(0, 0, kWidth, kHight);
 
 	//set Scene
-	ys::SceneManager::CreateScene<ys::Scene>(std::wstring(L"mainScene"));// issue
+	ys::SceneManager::CreateScene<ys::PlanetaryScene>(std::wstring(L"mainScene"));// issue
 	ys::SceneManager::LoadScene(L"mainScene");
 
 	//set callback
@@ -114,7 +125,6 @@ int main(int argc, char** argv)
 	glfwSetCursorPosCallback(window, CursorPositionCallback);
 	glfwSetMouseButtonCallback(window, MouseButtonCallback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
 
 	//loop func
 	while (!glfwWindowShouldClose(window))
@@ -128,61 +138,10 @@ int main(int argc, char** argv)
 
 
 
-	ys::Imgui_Manager::Get_Imgui_Manager()->Destroy(); // imgui 삭제 코드
-
 	app.Release();
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
-}
-
-unsigned int CreateShader(std::string vertexPath, std::string fragmentPath)
-{
-	GLint result;
-	GLchar errorLog[512];
-	auto vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	auto tmp = readFile(vertexPath);
-	auto vertexName = tmp.c_str();
-	glShaderSource(vertexShader, 1, &vertexName, NULL);
-	glCompileShader(vertexShader);
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &result);
-	if (!result)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, errorLog);
-		std::cerr << "ERROR: vertex shader 컴파일 실패\n" << errorLog << std::endl;
-		return -1;
-	}
-
-	auto fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	tmp = readFile(fragmentPath);
-	auto fragmentName = tmp.c_str();
-	glShaderSource(fragmentShader, 1, &fragmentName, NULL);
-	glCompileShader(fragmentShader);
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &result);
-	if (!result)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, errorLog);
-		std::cerr << "ERROR: fragmentShader 컴파일 실패\n" << errorLog << std::endl;
-		return -1;
-	}
-
-	auto shaderID = glCreateProgram();
-	glAttachShader(shaderID, vertexShader);
-	glAttachShader(shaderID, fragmentShader);
-
-	glLinkProgram(shaderID);
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-	glGetProgramiv(shaderID, GL_LINK_STATUS, &result);
-	if (!result)
-	{
-		glGetProgramInfoLog(shaderID, 512, NULL, errorLog);
-		std::cerr << "ERROR: shader program 연결 실패\n" << errorLog << std::endl;
-		return -1;
-	}
-
-	glUseProgram(shaderID);
-	return shaderID;
 }
 
 std::string readFile(const std::string& path)

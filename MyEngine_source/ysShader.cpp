@@ -63,6 +63,7 @@ bool ys::graphics::Shader::Create(const ys::graphics::ShaderStage stage, const s
 		if (CreateFragmentShader(fileName) == -1) return false;
 		break;
 	case ys::graphics::ShaderStage::CS:
+		if (CreateComputeShader(fileName) == -1) return false;
 		break;
 	case ys::graphics::ShaderStage::All:
 		break;
@@ -115,4 +116,25 @@ GLuint ys::graphics::Shader::CreateFragmentShader(std::wstring path)
 		return -1;
 	}
 	return fragmentShader;
+}
+
+GLuint ys::graphics::Shader::CreateComputeShader(std::wstring path)
+{
+	GLint result;
+	GLchar errorLog[512];
+	computeShader = glCreateShader(GL_COMPUTE_SHADER);
+	std::ifstream file(L"..\\ShaderSource\\" + path + L"CS.glsl");
+	std::stringstream buffer; buffer << file.rdbuf();
+	auto tmp = buffer.str();
+	auto computeName = tmp.c_str();
+	glShaderSource(computeShader, 1, &computeName, NULL);
+	glCompileShader(computeShader);
+	glGetShaderiv(computeShader, GL_COMPILE_STATUS, &result);
+	if (!result)
+	{
+		glGetShaderInfoLog(computeShader, 512, NULL, errorLog);
+		std::cerr << "ERROR: computeShader 컴파일 실패\n" << errorLog << std::endl;
+		return -1;
+	}
+	return computeShader;
 }

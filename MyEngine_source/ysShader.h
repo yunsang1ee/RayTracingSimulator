@@ -16,15 +16,25 @@ namespace ys::graphics
 
 		GLuint CreateVertexShader(std::wstring path);
 		GLuint CreateFragmentShader(std::wstring path);
+		GLuint CreateComputeShader(std::wstring path);
 		GLuint GetShaderID() const { return shaderID; }
 
-		void Bind() const { glUseProgram(shaderID); }
+		void Bind() const 
+		{
+			glUseProgram(shaderID);
+			if (computeShader) 
+			{
+				glDispatchCompute(16, 16, 1);
+				glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+			}
+		}
 		void Unbind() const { glUseProgram(0); }
 
 	private:
 		GLuint shaderID;
 		GLuint vertexShader;
 		GLuint fragmentShader;
+		GLuint computeShader;
 	};
 }
 
