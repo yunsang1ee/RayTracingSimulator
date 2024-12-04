@@ -18,7 +18,7 @@
 #include <ysResources.h>
 #include <ysShader.h>
 
-static float kWidth = 800, kHight = 800;
+static float kWidth = 1920, kHight = 1080;
 
 ys::Application app;
 
