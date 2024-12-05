@@ -65,5 +65,7 @@ namespace ys
 		graphics::Shader* shader;
 		Mesh* mesh;
 		std::vector<std::pair<GameObject*, glm::vec3>> lights;
+		glm::vec4 objectColor;
+		bool isAmbient;
 	};
 }

@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rayTracingSimulator", "rayT
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyEngine_source", "MyEngine_source\MyEngine_source.vcxitems", "{033ABF51-E997-46D4-A204-BB6953E72881}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShaderSource", "ShaderSource\ShaderSource.vcxitems", "{CA059A0F-878E-48DC-91DD-DFE1D0106370}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -33,5 +35,6 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		MyEngine_source\MyEngine_source.vcxitems*{033abf51-e997-46d4-a204-bb6953e72881}*SharedItemsImports = 9
 		MyEngine_source\MyEngine_source.vcxitems*{b1f83cdd-52b9-48c0-b12b-a0b8c0691648}*SharedItemsImports = 4
+		ShaderSource\ShaderSource.vcxitems*{ca059a0f-878e-48dc-91dd-dfe1d0106370}*SharedItemsImports = 9
 	EndGlobalSection
 EndGlobal

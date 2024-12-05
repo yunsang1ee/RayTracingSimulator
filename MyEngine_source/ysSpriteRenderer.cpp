@@ -34,6 +34,7 @@ void ys::SpriteRenderer::LateUpdate()
 
 void ys::SpriteRenderer::Render(HDC hDC)
 {
+
 	shader->Bind();
 	unsigned int projectionLocation = glGetUniformLocation(shader->GetShaderID(), "projectionTrans"); //--- 투영 변환 값 설정
 	unsigned int viewLocation = glGetUniformLocation(shader->GetShaderID(), "viewTrans"); //--- 뷰잉 변환 설정
@@ -56,9 +57,13 @@ void ys::SpriteRenderer::Render(HDC hDC)
 	glEnableVertexAttribArray(2);
 
 	unsigned int isTexture = glGetUniformLocation(shader->GetShaderID(), "isTexture");
+	unsigned int isAmbient = glGetUniformLocation(shader->GetShaderID(), "isAmbient");
 	unsigned int viewPos = glGetUniformLocation(shader->GetShaderID(), "viewPos");
 	unsigned int lightCount = glGetUniformLocation(shader->GetShaderID(), "lightCount");
+	unsigned int objectColor = glGetUniformLocation(shader->GetShaderID(), "objectColor");
+
 	glUniform1i(isTexture, GL_FALSE);
+	glUniform1i(isAmbient, this->isAmbient);
 	glUniform3fv(viewPos, 1, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
 	struct Light
 	{
@@ -75,7 +80,7 @@ void ys::SpriteRenderer::Render(HDC hDC)
 		unsigned int lightsColor = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].color").c_str());
 		glUniform3fv(lightsPosition, 1, glm::value_ptr(lightsInfo[i].position));
 		glUniform3fv(lightsColor, 1, glm::value_ptr(lightsInfo[i].color));
-	}	
+	}
 	glUniform1i(lightCount, lightsInfo.size());
 
 	std::vector<GLfloat> values(10 * 6);
@@ -86,10 +91,13 @@ void ys::SpriteRenderer::Render(HDC hDC)
 		glGetUniformfv(shader->GetShaderID(), lightsPosition, &values[i * 6]);
 		glGetUniformfv(shader->GetShaderID(), lightsColor, &values[i * 6 + 3]);
 		std::cout << "Light " << i << " Position: (" << values[i * 6] << ", " << values[i * 6 + 1] << ", " << values[i * 6 + 2] << ")" << std::endl;
-		std::cout << "Light " << i << " Color: (" << values[i * 6 + 3] << ", " << values[i * 6 + 4] << ", " << values[i * 6 + 5] << ")" << std::endl; 
+		std::cout << "Light " << i << " Color: (" << values[i * 6 + 3] << ", " << values[i * 6 + 4] << ", " << values[i * 6 + 5] << ")" << std::endl;
 	}
 	int a{};
 	glGetUniformiv(shader->GetShaderID(), lightCount, &a);
+
+	glUniform4fv(objectColor, 1, glm::value_ptr(this->objectColor));
+
 	std::cout << a << std::endl;
 
 	glDrawElements(mesh->GetUsageType(), mesh->GetIndicesCount(), GL_UNSIGNED_INT, (void*)0);
