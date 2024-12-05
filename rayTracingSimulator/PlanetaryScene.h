@@ -20,23 +20,25 @@ namespace ys
 
 		void SetUpFBO(int iX, int iY);
 		void RenderTo_Imgui_FBO(HDC hDC, const int& index);
+		void RenderTo_Imgui_FBO_Two(HDC hDC, const int& index);
 
 	private:
-		GLuint VAO;
+		GLuint VAO {};
 
-		GLuint axisVBO;
+		GLuint axisVBO {};
 
-		GameObject* mainObject;
+		GameObject* mainObject {};
 
 
 	private:
-		GLuint Imgui_fbo, Imgui_fboTexture;
+		GLuint Imgui_fbo {}, Imgui_fboTexture {};
+		GLuint Imgui_fbo_Two {}, Imgui_fboTexture_Two {};
 
 		int iImguiView_X = 1920;
 		int iImguiView_Y = 1080;
 
-		int iToolSize_X = 800;
-		int iToolSize_Y = 600;
+		int iToolSize_X = 1920;
+		int iToolSize_Y = 1080;
 
 	};
 }

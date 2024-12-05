@@ -18,7 +18,7 @@
 #include <ysResources.h>
 #include <ysShader.h>
 
-static float kWidth = 1920, kHight = 1080;
+static float kWidth = 2320, kHight = 1080;
 
 ys::Application app;
 
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 		glfwTerminate();
 		return -1;
 	}
-	glfwSetWindowPos(window, 600, 100);
+	glfwSetWindowPos(window, 100, 100);
 	glfwMakeContextCurrent(window);
 
 	//initialize GLAD (func pointer)
