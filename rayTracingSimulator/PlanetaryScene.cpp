@@ -56,6 +56,15 @@ void ys::PlanetaryScene::Update()
 
 	if (InputManager::getKeyDown(GLFW_KEY_ESCAPE))
 		glfwSetWindowShouldClose(app.getWindow(), GL_TRUE);
+
+	if (InputManager::getKey((WORD)Key::LEFT_BUTTON)) // 일단 마우스 누른것을 이동한다고 가정
+	{
+		iFrame = 0;
+	}
+	else
+	{
+		iFrame += 1;
+	}
 }
 
 void ys::PlanetaryScene::LateUpdate()
@@ -67,7 +76,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 {
 	// 이건 일반 메인화면 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // imgui 프레임 버퍼로 바꾸고
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, phongTexture, 0);
+	//
 
 	glViewport(0, 0, iImguiView_X, iImguiView_Y);
 	glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
@@ -102,12 +111,22 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	//prevTexture Update
-	glCopyImageSubData(currentTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
-		previousTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
-		1920, 1080, 1);
+
+
+	// 원하는 텍스처를 바인딩 
+	glBindTexture(GL_TEXTURE_2D, phongTexture);
+	// 현재 바인딩된 프레임 버퍼의 내용을 targetTexture에 복사 
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, iImguiView_X, iImguiView_Y, 0);
+	// 텍스처 언바인딩 0이 언바인딩 한다는 뜻
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindTexture(GL_TEXTURE_2D, currentTexture);
+	// 현재 바인딩된 프레임 버퍼의 내용을 targetTexture에 복사 
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, iImguiView_X, iImguiView_Y, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO(phongTexture);
-	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO_Two(currentTexture);
+	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO_Two(currentTexture,iFrame);
 }
 
 void ys::PlanetaryScene::Destroy()

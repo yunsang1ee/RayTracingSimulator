@@ -46,7 +46,7 @@ namespace ys
 
 		static void SetFBO(GLuint fboTexture);
 
-		static void SetFBO_Two(GLuint fboTexture);
+		static void SetFBO_Two(GLuint fboTexture,int iFrame);
 
 
 	private: // 나중에 여기에 변수 추가

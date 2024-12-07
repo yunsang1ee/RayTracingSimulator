@@ -39,6 +39,8 @@ namespace ys
 		int iToolSize_X;
 		int iToolSize_Y;
 
+		int iFrame = 0; // 현재 멈춘상태로 몇 프레임 돌았는지?
+
 	};
 }
 
