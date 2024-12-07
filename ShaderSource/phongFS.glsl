@@ -2,7 +2,6 @@
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
-uniform vec3 _WorldSpaceCameraPos;
 uniform vec2 viewportSize;
 
 out vec4 FragColor;

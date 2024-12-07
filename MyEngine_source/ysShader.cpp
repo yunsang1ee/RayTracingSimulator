@@ -4,7 +4,7 @@
 #include <iostream>
 
 ys::graphics::Shader::Shader()
-	: Resource(enums::ResourceType::Shader)
+	: Resource(enums::ResourceType::Shader), isComputeShader(false)
 {
 }
 
@@ -116,6 +116,7 @@ GLuint ys::graphics::Shader::CreateFragmentShader(std::wstring path)
 GLuint ys::graphics::Shader::CreateComputeShader(std::wstring path)
 {
 	GLint result;
+	isComputeShader = true;
 	computeShader = glCreateShader(GL_COMPUTE_SHADER);
 	std::ifstream file(L"..\\ShaderSource\\" + path + L"CS.glsl");
 	std::stringstream buffer; buffer << file.rdbuf();

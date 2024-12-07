@@ -21,7 +21,7 @@ namespace ys::graphics
 		void Bind(GLuint computeShaderOffset = 0) const
 		{
 			glUseProgram(shaderID);
-			if (computeShader)
+			if (isComputeShader)
 			{
 				glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, dispatchIndirectBuffer);
 				glDispatchComputeIndirect(computeShaderOffset);
@@ -39,6 +39,7 @@ namespace ys::graphics
 		GLuint shaderID;
 		GLuint vertexShader;
 		GLuint fragmentShader;
+		bool isComputeShader;
 		GLuint computeShader;
 		GLuint dispatchIndirectBuffer;
 	};

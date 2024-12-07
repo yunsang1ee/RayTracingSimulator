@@ -84,9 +84,8 @@ void ys::Imgui_Manager::Render()
 	glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 640, 360, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resizeTexture, 0);
 	ImGui::Begin("Phong", nullptr, window_flags);
-	ImGui::Image(resizeTexture, ImVec2(640, 360), ImVec2(0, 1), ImVec2(0, 1));
+	ImGui::Image(resizeTexture, ImVec2(640, 360), ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::End();
 
 
@@ -103,7 +102,7 @@ void ys::Imgui_Manager::Render()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	ImGui::Begin("Pathtracing", nullptr, window_flags);
-	ImGui::Image(resizeTexture, ImVec2(640, 360), ImVec2(0, 1), ImVec2(0, 1));
+	ImGui::Image(resizeTexture, ImVec2(640, 360), ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::End();
 
 
@@ -116,6 +115,7 @@ void ys::Imgui_Manager::Render()
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 

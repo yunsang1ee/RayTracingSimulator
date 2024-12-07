@@ -68,10 +68,10 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	// 이건 일반 메인화면 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // imgui 프레임 버퍼로 바꾸고
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, phongTexture, 0);
+
 	glViewport(0, 0, iImguiView_X, iImguiView_Y);
 	glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
 	// imgui에 그릴것들
 	Scene::Render(hDC, index);
@@ -81,7 +81,6 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 
 	unsigned int projectionMatrix = glGetUniformLocation(shader->GetShaderID(), "projectionMatrix"); //--- 투영 변환 값 설정
 	unsigned int viewMatrix = glGetUniformLocation(shader->GetShaderID(), "viewMatrix"); //--- 뷰잉 변환 설정
-	unsigned int _WorldSpaceCameraPos = glGetUniformLocation(shader->GetShaderID(), "_WorldSpaceCameraPos");
 	unsigned int viewportSize = glGetUniformLocation(shader->GetShaderID(), "viewportSize");
 
 	glUniformMatrix4fv(projectionMatrix, 1, GL_FALSE
@@ -89,9 +88,6 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 
 	glUniformMatrix4fv(viewMatrix, 1, GL_FALSE
 		, glm::value_ptr(renderer::mainCamera->GetmainViewMatrix()));
-
-	glUniform3fv(_WorldSpaceCameraPos, 1
-		, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
 
 	glUniform2fv(viewportSize, 1
 		, glm::value_ptr(glm::vec2(iImguiView_X, iImguiView_Y)));
@@ -105,7 +101,6 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glEnableVertexAttribArray(2);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-
 	//prevTexture Update
 	glCopyImageSubData(currentTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
 		previousTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
