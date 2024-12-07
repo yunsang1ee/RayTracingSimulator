@@ -13,16 +13,13 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "imgui_impl_opengl3_loader.h"
 #include "PlanetaryScene.h"
-#include <ysResources.h>
-#include <ysShader.h>
+#include "ResourceLoad.h"
 
 static float kWidth = 2320, kHight = 1080;
 
 ys::Application app;
 
-unsigned int CreateShader(std::string vertexPath, std::string fragmentPath);
 std::string readFile(const std::string&);
 
 void FramebufferCallback(GLFWwindow* window, int w, int h);
@@ -106,7 +103,7 @@ int main(int argc, char** argv)
 		return -1; 
 	}
 
-	ys::Resources::Load<ys::graphics::Shader>(L"vc", L"vc");
+	ys::ResourceLoad();
 
 	//shader(glsl) initialize
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;

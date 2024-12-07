@@ -19,18 +19,6 @@ namespace ys::graphics
 		bool operator==(const Vertex& other) const { return position == other.position && texture == other.texture && normal == other.normal; }
 		bool operator<(const Vertex that) const { return memcmp((void*)this, (void*)&that, sizeof(Vertex)) > 0; }
 	};
-
-	enum class ShaderStage
-	{
-		VS,
-		HS,
-		DS,
-		GS,
-		FS,
-		CS,
-		All,
-		End,
-	};
 }
 
 namespace std

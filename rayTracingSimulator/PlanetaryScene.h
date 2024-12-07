@@ -19,33 +19,32 @@ namespace ys
 		virtual void OnExit(); //title -> play scene (title exit)
 
 		void SetUpFBO(int iX, int iY);
-		void RenderTo_Imgui_FBO(HDC hDC, const int& index);
-		void RenderTo_Imgui_FBO_Two(HDC hDC, const int& index);
 
 	private:
-		GLuint VAO {};
+		GLuint VAO{};
 
-		GLuint axisVBO {};
+		GLuint quadVBO{};
 
-		GameObject* mainObject {};
+		GameObject* mainObject{};
 
 
 	private:
-		GLuint Imgui_fbo {}, Imgui_fboTexture {};
-		GLuint Imgui_fbo_Two {}, Imgui_fboTexture_Two {};
+		GLuint currentTexture{}, previousTexture{}; //raytarcing(compute shader) not use framebuffer
+		GLuint phongFramebuffer{}, phongTexture{};
+		GLuint finalFramebuffer{}, finalTexture{};
 
-		int iImguiView_X = 1920;
-		int iImguiView_Y = 1080;
+		int iImguiView_X;
+		int iImguiView_Y;
 
-		int iToolSize_X = 1920;
-		int iToolSize_Y = 1080;
+		int iToolSize_X;
+		int iToolSize_Y;
 
 	};
 }
 
 /*
 	알베도		-> 텍스처
-	노멀맵		-> 텍스처	
+	노멀맵		-> 텍스처
 	하이트맵	-> 텍스처
 	셰도우맵	-> 텍스처
 */

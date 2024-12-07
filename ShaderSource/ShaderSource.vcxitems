@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{ca059a0f-878e-48dc-91dd-dfe1d0106370}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)legeno16CS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)legeno32CS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)legeno8CS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)phongFS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)phongVS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)vcFS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)vcVS.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)mixFS.glsl" />
+  </ItemGroup>
+</Project>

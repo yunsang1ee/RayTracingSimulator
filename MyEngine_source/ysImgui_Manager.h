@@ -34,6 +34,7 @@ namespace ys
 
 	public:
 		static void Init(GLFWwindow* window); // 초기화
+		static void PostInit(); // 초기화
 
 		static void Update(); // 실질적인 부분
 
@@ -43,17 +44,18 @@ namespace ys
 
 		static void Destroy(); // 가장 마지막에 불려야 할 것 imgui를 닫아버림
 
-		static void SetFBO(GLuint fbo, GLuint fboTexture);
+		static void SetFBO(GLuint fboTexture);
 
-		static void SetFBO_Two(GLuint fbo, GLuint fboTexture);
+		static void SetFBO_Two(GLuint fboTexture);
 
 
 	private: // 나중에 여기에 변수 추가
 		static Imgui_Manager* imgui_Manager;
 
-		static GLuint fbo, fboTexture;
-
-		static GLuint fbo_Two, fboTexture_Two;
+		static GLuint sourceFramebuffer, targetFramebuffer;
+		static GLuint phongTexture;
+		static GLuint raytracingTexture;
+		static GLuint resizeTexture;
 
 		static int iSubView_X;
 		static int iSubView_Y;
