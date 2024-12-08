@@ -19,6 +19,7 @@
     <None Include="$(MSBuildThisFileDirectory)legeno8CS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)phongFS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)phongVS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)testFS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)vcFS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)vcVS.glsl" />
   </ItemGroup>

@@ -28,22 +28,26 @@ namespace ys
 		void SetShader(graphics::Shader* shader) { this->shader = shader; }
 		void SetMesh(Mesh* mesh) { this->mesh = mesh; }
 		void AddLight(GameObject* light, glm::vec3 color) { lights.emplace_back(light, color); }
-		void DelLight(GameObject* light) 
-		{ 
+		void DelLight(GameObject* light)
+		{
 			lights.erase(remove_if(lights.begin(), lights.end()
-				, [&](const std::pair<GameObject*, glm::vec3>& val) {return val.first == light;})
+				, [&](const std::pair<GameObject*, glm::vec3>& val) {return val.first == light; })
 				, lights.end());
 		}
-		void SetLightColor(GameObject* light, glm::vec3 color) 
+		void SetLightColor(GameObject* light, glm::vec3 color)
 		{
-			std::find_if(lights.begin(), lights.end(), [&](std::pair<GameObject*, glm::vec3>& val){
+			std::find_if(lights.begin(), lights.end(), [&](std::pair<GameObject*, glm::vec3>& val) {
 				return val.first == light;
 				}
 			)->second = color;
 		}
-		glm::vec3 GetLightColor(GameObject* light) const 
+		void SetObjectColor(glm::vec4 color)
 		{
-			return std::find_if(lights.begin(), lights.end(), [&](const std::pair<GameObject*, glm::vec3>& val){
+			objectColor = color;
+		}
+		glm::vec3 GetLightColor(GameObject* light) const
+		{
+			return std::find_if(lights.begin(), lights.end(), [&](const std::pair<GameObject*, glm::vec3>& val) {
 				return val.first == light;
 				}
 			)->second;
@@ -65,5 +69,7 @@ namespace ys
 		graphics::Shader* shader;
 		Mesh* mesh;
 		std::vector<std::pair<GameObject*, glm::vec3>> lights;
+		glm::vec4 objectColor;
+		bool isAmbient;
 	};
 }

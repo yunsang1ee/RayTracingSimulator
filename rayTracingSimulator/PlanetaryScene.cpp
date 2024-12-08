@@ -57,9 +57,19 @@ void ys::PlanetaryScene::Init()
 	renderer::mainCamera = camera->AddComponent<Camera>();
 	camera->AddComponent<CameraScript>();
 
-
 	SetUpFBO(iToolSize_X, iToolSize_Y);
+	
 
+	auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
+
+	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(2.0f, 0.0f, 0.0f));
+	auto tr = mainObject->GetComponent<Transform>();
+	tr->SetScale(glm::vec3(0.1f, 0.1f, 0.1f));
+	auto sp = mainObject->AddComponent<SpriteRenderer>();
+	sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+	sp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	sp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 void ys::PlanetaryScene::Update()
@@ -87,7 +97,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 
 	// imgui에 그릴것들
 	Scene::Render(hDC, index);
-	auto shader = ys::Resources::Find<graphics::Shader>(L"phong");
+	auto shader = ys::Resources::Find<graphics::Shader>(L"test");
 	shader->Bind();
 	glBindVertexArray(VAO);
 	unsigned int projectionMatrix = glGetUniformLocation(shader->GetShaderID(), "projectionMatrix"); //--- 투영 변환 값 설정
