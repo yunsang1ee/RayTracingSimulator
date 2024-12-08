@@ -5,6 +5,19 @@ namespace ys
 {
 	class PlanetaryScene : public Scene
 	{
+		struct Material
+		{
+			glm::vec4 color;
+			glm::vec4 emittedColor;
+			glm::vec4 emissionStrength;
+		};
+
+		struct Sphere
+		{
+			glm::vec3 center;
+			float radius;
+			Material material;
+		};
 	public:
 		PlanetaryScene();
 		~PlanetaryScene();
@@ -18,11 +31,13 @@ namespace ys
 		virtual void OnEnter(); //title -> play scene (play init)
 		virtual void OnExit(); //title -> play scene (title exit)
 
+		void PhongRender(HDC hDC, const int& index);
 		void SetUpFBO(int iX, int iY);
 
 	private:
 		GLuint VAO{};
 
+		GLuint axisVBO{};
 		GLuint quadVBO{};
 
 		GameObject* mainObject{};
@@ -30,8 +45,12 @@ namespace ys
 
 	private:
 		GLuint currentTexture{}, previousTexture{}; //raytarcing(compute shader) not use framebuffer
-		GLuint phongFramebuffer{}, phongTexture{};
-		GLuint finalFramebuffer{}, finalTexture{};
+		GLuint phongFramebuffer{}, depthBuffer{}, phongTexture{};
+		//final is default FrameBuffer
+
+		GLuint ssboSphere{};
+		std::map<uintptr_t, Sphere> spheres;
+		GLuint ssboLight{};
 
 		int iImguiView_X;
 		int iImguiView_Y;

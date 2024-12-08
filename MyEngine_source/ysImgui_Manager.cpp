@@ -75,15 +75,6 @@ void ys::Imgui_Manager::Render()
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize
 		| ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-	//glBindFramebuffer(GL_READ_FRAMEBUFFER, sourceFramebuffer);
-	//glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, phongTexture, 0);
-
-	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebuffer);
-	//glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resizeTexture, 0);
-
-	/*glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 640, 360, GL_COLOR_BUFFER_BIT, GL_LINEAR);*/
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	ImGui::Begin("Phong", nullptr, window_flags);
 	ImGui::Image(phongTexture, ImVec2(640, 360), ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::End();
@@ -92,15 +83,7 @@ void ys::Imgui_Manager::Render()
 	ImGui::SetNextWindowPos(ImVec2(0, 390), ImGuiCond_Always); // 고정된 위치 
 	ImGui::SetNextWindowSize(ImVec2(640, 390), ImGuiCond_Always); // 고정된 크기
 
-	//glBindFramebuffer(GL_READ_FRAMEBUFFER, sourceFramebuffer);
-	//glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, raytracingTexture, 0);
-
-	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebuffer);
-	//glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resizeTexture, 0);
-
-	//glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 640, 360, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	ImGui::Begin("Pathtracing", nullptr, window_flags);
 	ImGui::Image(raytracingTexture, ImVec2(640, 360), ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::End();
