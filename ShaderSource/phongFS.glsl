@@ -16,7 +16,6 @@ struct Light
 in VertexOut outData;
 
 uniform bool isTexture;
-uniform bool isAmbient;
 uniform sampler2D textureSampler;
 
 uniform vec3 viewPos;
@@ -44,8 +43,7 @@ void main()
 		float dist = max(distance(lightPos, outData.position.xyz),1);
 
 		float ambientLight;
-		if(isAmbient) ambientLight = 0.5f;
-		else ambientLight = 0.0f;
+		ambientLight = 0.0f;
 		vec3 ambient = ambientLight * texColor.rgb;
 
 		vec3 norm = normalize(outData.normal);

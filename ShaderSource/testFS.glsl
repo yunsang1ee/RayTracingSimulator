@@ -13,12 +13,32 @@ struct Ray
     vec3 dir;
 };
 
+struct Material
+{
+    vec4 color;
+    vec4 emittedColor;
+    vec4 emissionStrength;
+};
+
+struct Sphere
+{
+    vec3 center;
+    float radius;
+    Material material;
+};
+
 struct HitInfo
 {
     bool isHit;
     float dist;
     vec3 hitPoint;
     vec3 normal;
+    Material material;
+};
+
+layout(std430, binding = 0) buffer Spheres // std430 -> float = 4byte, vec3 = 12byte, vec4 = 16byte
+{
+    Sphere spheres[];
 };
 
 HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius)
@@ -47,38 +67,63 @@ HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius)
     return hitInfo;
 }
 
+HitInfo CalculateRayCollision(Ray ray)
+{
+    HitInfo closestHit;
+    closestHit.dist = 1.0f / 0.0f; //INF
+
+    for (int i = 0; i < spheres.length(); ++i)
+    {
+
+        Sphere sphere = spheres[i];
+        HitInfo hitInfo = RaySphere(ray, sphere.center, sphere.radius);
+
+        if (hitInfo.isHit && hitInfo.dist < closestHit.dist)
+        {
+            closestHit = hitInfo;
+            closestHit.material = sphere.material;
+        }
+    }
+    return closestHit;
+}
+
 void main()
 {
     // 화면 좌표를 클립 공간으로 변환
-    vec4 clipSpace = vec4((gl_FragCoord.xy / viewportSize * 2.0f - 1.0f), 1.0f, 1.0f);
+    vec4 clipSpace = vec4((gl_FragCoord.xy / viewportSize * 2.0f - 1.0f), 1.0f, 1.0f); // ?
     
     // 클립 공간을 뷰 공간으로 변환
     vec4 viewSpace = inverse(projectionMatrix) * clipSpace;
-    viewSpace = vec4(viewSpace.xy, -1.0f, 0.0f);
+
+    viewSpace /= viewSpace.w;
+
+    //viewSpace = vec4(viewSpace.xy, -1.0f, 0.0f);
     
     // 뷰 공간을 월드 공간으로 변환
-    vec3 worldSpace = viewPosition + (inverse(viewMatrix) * viewSpace).xyz;
-    FragColor = vec4(normalize(worldSpace), 1.0f);
+    vec3 worldSpace = (inverse(viewMatrix) * vec4(viewSpace.xyz,1.0)).xyz;
+
     Ray ray;
-    ray.origin = viewPosition;
+    ray.origin = (inverse(viewMatrix) * vec4(viewPosition,1.0)).xyz;
     ray.dir = normalize(worldSpace - ray.origin);
+
+    FragColor = vec4(normalize(worldSpace), 1.0f);
     
     // 구체 설정
-    vec4 transformed = (projectionMatrix * viewMatrix * vec4(2.0f, 0.0f, 0.0f, 1.0f));
-    vec3 sphereCenter1 = transformed.xyz / (transformed.w == 0 ? 1 : transformed.w);
-    float sphereRadius1 = 0.1;
-    vec3 sphereCenter2 = vec4(2.0f, 0.0f, -1.5f, 1.0f).xyz;
-    float sphereRadius2 = 0.1;
+    vec4 transformed = (vec4(2.0f, 0.0f, 0.0f, 1.0f));
+    vec3 sphereCenter1 = transformed.xyz;
+    float sphereRadius1 = 1.0f;
+    vec3 sphereCenter2 = vec4(0.0f, 0.f, -1.0f, 1.0f).xyz;
+    float sphereRadius2 = 1.0f;
 
     // 구체 교차 검사
-    HitInfo hitInfo1 = RaySphere(ray, (inverse(viewMatrix) * inverse(projectionMatrix) * vec4(sphereCenter1, 1.0f)).xyz, sphereRadius1);
+    HitInfo hitInfo1 = RaySphere(ray, (vec4(sphereCenter1, 1.0f)).xyz, sphereRadius1);
     HitInfo hitInfo2 = RaySphere(ray, sphereCenter2, sphereRadius2);
 
     // 조명 설정
     vec3 lightPos = vec3(0.0f, 0.0f, 2.0f);
     vec3 lightColor = vec3(1.0f);
     vec3 ambientColor = vec3(0.1f);
-    vec3 viewDir = normalize(viewPosition - (hitInfo1.isHit ? hitInfo1.hitPoint : hitInfo2.hitPoint));
+    vec3 viewDir = normalize(ray.origin - (hitInfo1.isHit ? hitInfo1.hitPoint : hitInfo2.hitPoint));
 
     vec3 color = vec3(0.0f);
     if (hitInfo1.isHit)

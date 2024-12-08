@@ -29,6 +29,10 @@ void ys::PlanetaryScene::Init()
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
+	glGenBuffers(1, &ssboSphere);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
+
+
 	float factor = app.getScreenf().x;
 	glGenBuffers(1, &axisVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
@@ -53,18 +57,18 @@ void ys::PlanetaryScene::Init()
 		{{-1.0f,  1.0f, 0.0f},		{0.0f, 1.0f},		{0.0f, 0.0f, 1.0f}}   // top-left corner
 	};
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	auto camera = object::Instantiate<GameObject>(enums::LayerType::Camera, glm::vec3(5.0f, 0.0f, 2.0f));
+	auto camera = object::Instantiate<GameObject>(enums::LayerType::Camera, glm::vec3(3.0f, 1.0f, 5.0f));
 	renderer::mainCamera = camera->AddComponent<Camera>();
 	camera->AddComponent<CameraScript>();
 
-	auto light = object::Instantiate<GameObject>(enums::LayerType::ChildObject, glm::vec3(2.0f, 0.0f, 0.0f));
+	auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(2.0f, 0.0f, 0.0f));
 	auto lightSp = light->AddComponent<SpriteRenderer>();
 	lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
 	lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 	lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	lightSp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
 
-	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 0.0f));
+	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
 	auto tr = mainObject->GetComponent<Transform>();
 	//tr->SetScale(glm::vec3(100.0f, 100.0f, 100.0f));
 	auto sp = mainObject->AddComponent<SpriteRenderer>();
@@ -93,9 +97,12 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, phongTexture, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glBindVertexArray(VAO);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	Scene::Render(hDC, index);
+
 	auto shader = ys::Resources::Find<graphics::Shader>(L"vc");
 	shader->Bind();
 
@@ -129,7 +136,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, iImguiView_X, iImguiView_Y);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Phong Render
@@ -192,6 +199,11 @@ void ys::PlanetaryScene::OnExit()
 void ys::PlanetaryScene::SetUpFBO(int iX, int iY)
 {
 	glGenFramebuffers(1, &phongFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
+	glGenRenderbuffers(1, &depthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, iX, iY);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	glGenTextures(1, &currentTexture);
 	glBindTexture(GL_TEXTURE_2D, currentTexture);

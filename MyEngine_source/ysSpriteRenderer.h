@@ -8,6 +8,13 @@ namespace ys
 {
 	class SpriteRenderer : public Component
 	{
+		struct Material
+		{
+			glm::vec4 color;
+			glm::vec4 emittedColor;
+			float emissionStrength;
+		};
+
 	public:
 		SpriteRenderer();
 		~SpriteRenderer();

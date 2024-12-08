@@ -109,8 +109,8 @@ int main(int argc, char** argv)
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 	app.Init(hWnd, window, RECT(0, 0, kWidth, kHight), false);
 	glViewport(0, 0, kWidth, kHight);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST); glDepthMask(GL_TRUE); glClearDepth(1.0f);
+	glEnable(GL_CULL_FACE);      
 
 	//set Scene
 	ys::SceneManager::CreateScene<ys::PlanetaryScene>(std::wstring(L"mainScene"));// issue
