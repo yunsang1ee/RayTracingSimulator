@@ -23,6 +23,7 @@ namespace ys
 	private:
 		GLuint VAO{};
 
+		GLuint axisVBO{};
 		GLuint quadVBO{};
 
 		GameObject* mainObject{};

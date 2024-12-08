@@ -30,6 +30,18 @@ void ys::PlanetaryScene::Init()
 	glBindVertexArray(VAO);
 
 	float factor = app.getScreenf().x;
+	glGenBuffers(1, &axisVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
+	glm::vec3 axis[] = {
+		{-factor, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+		{factor, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+		{0.0f, -factor, 0.0f}, {0.0f, 1.0f, 0.0f},
+		{0.0f, factor, 0.0f}, {0.0f, 1.0f, 0.0f},
+		{0.0f, 0.0f, -factor}, {0.0f, 0.0f, 1.0f},
+		{0.0f, 0.0f, factor}, {0.0f, 0.0f, 1.0f},
+	};
+	glBufferData(GL_ARRAY_BUFFER, sizeof(axis), axis, GL_STATIC_DRAW);
+
 	glGenBuffers(1, &quadVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 	graphics::Vertex vertices[] = {
@@ -41,7 +53,7 @@ void ys::PlanetaryScene::Init()
 		{{-1.0f,  1.0f, 0.0f},		{0.0f, 1.0f},		{0.0f, 0.0f, 1.0f}}   // top-left corner
 	};
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	auto camera = object::Instantiate<GameObject>(enums::LayerType::Camera, glm::vec3(0.0f, 0.0f, 0.0f));
+	auto camera = object::Instantiate<GameObject>(enums::LayerType::Camera, glm::vec3(0.0f, 0.0f, 2.0f));
 	renderer::mainCamera = camera->AddComponent<Camera>();
 	camera->AddComponent<CameraScript>();
 
@@ -78,9 +90,9 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	auto shader = ys::Resources::Find<graphics::Shader>(L"phong");
 	shader->Bind();
 	glBindVertexArray(VAO);
-
 	unsigned int projectionMatrix = glGetUniformLocation(shader->GetShaderID(), "projectionMatrix"); //--- 투영 변환 값 설정
 	unsigned int viewMatrix = glGetUniformLocation(shader->GetShaderID(), "viewMatrix"); //--- 뷰잉 변환 설정
+	unsigned int viewPosition = glGetUniformLocation(shader->GetShaderID(), "viewPosition");
 	unsigned int viewportSize = glGetUniformLocation(shader->GetShaderID(), "viewportSize");
 
 	glUniformMatrix4fv(projectionMatrix, 1, GL_FALSE
@@ -89,6 +101,10 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glUniformMatrix4fv(viewMatrix, 1, GL_FALSE
 		, glm::value_ptr(renderer::mainCamera->GetmainViewMatrix()));
 
+	auto pos = renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition();
+	glUniform2fv(viewPosition, 1
+		, glm::value_ptr(pos));
+	std::cout << "pos: " << pos.x << ' ' << pos.y << ' ' << pos.z << std::endl;
 	glUniform2fv(viewportSize, 1
 		, glm::value_ptr(glm::vec2(iImguiView_X, iImguiView_Y)));
 
@@ -101,6 +117,31 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glEnableVertexAttribArray(2);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	shader->Unbind();
+
+	shader = ys::Resources::Find<graphics::Shader>(L"vc");
+	shader->Bind();
+
+	unsigned int projectionLocation = glGetUniformLocation(shader->GetShaderID(), "projectionTrans"); //--- 투영 변환 값 설정
+	unsigned int viewLocation = glGetUniformLocation(shader->GetShaderID(), "viewTrans"); //--- 뷰잉 변환 설정
+	unsigned int transformLocation = glGetUniformLocation(shader->GetShaderID(), "worldTrans");
+
+	glm::mat4 projection = renderer::mainCamera->GetmainProjectionMatrix(); //--- 투영 공간 설정: fovy, aspect, near, far
+	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+
+	glm::mat4 view = renderer::mainCamera->GetmainViewMatrix();
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+
+	glm::mat4 axisWorldTrans{ 1.0f };
+	glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(axisWorldTrans));
+
+	glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+	glDrawArrays(GL_LINES, 0, 12 * 3);
+
 	//prevTexture Update
 	glCopyImageSubData(currentTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
 		previousTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
