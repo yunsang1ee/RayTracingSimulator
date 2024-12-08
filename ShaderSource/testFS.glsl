@@ -66,9 +66,9 @@ void main()
     // 구체 설정
     vec4 transformed = (projectionMatrix * viewMatrix * vec4(2.0f, 0.0f, 0.0f, 1.0f));
     vec3 sphereCenter1 = transformed.xyz / (transformed.w == 0 ? 1 : transformed.w);
-    float sphereRadius1 = 1;
+    float sphereRadius1 = 0.1;
     vec3 sphereCenter2 = vec4(2.0f, 0.0f, -1.5f, 1.0f).xyz;
-    float sphereRadius2 = 1;
+    float sphereRadius2 = 0.1;
 
     // 구체 교차 검사
     HitInfo hitInfo1 = RaySphere(ray, (inverse(viewMatrix) * inverse(projectionMatrix) * vec4(sphereCenter1, 1.0f)).xyz, sphereRadius1);

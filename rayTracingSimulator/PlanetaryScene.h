@@ -18,6 +18,7 @@ namespace ys
 		virtual void OnEnter(); //title -> play scene (play init)
 		virtual void OnExit(); //title -> play scene (title exit)
 
+		void PhongRender(HDC hDC, const int& index);
 		void SetUpFBO(int iX, int iY);
 
 	private:
@@ -32,7 +33,7 @@ namespace ys
 	private:
 		GLuint currentTexture{}, previousTexture{}; //raytarcing(compute shader) not use framebuffer
 		GLuint phongFramebuffer{}, phongTexture{};
-		GLuint finalFramebuffer{}, finalTexture{};
+		//final is default FrameBuffer
 
 		int iImguiView_X;
 		int iImguiView_Y;

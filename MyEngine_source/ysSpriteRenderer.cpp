@@ -92,8 +92,8 @@ void ys::SpriteRenderer::Render(HDC hDC)
 		unsigned int lightsColor = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].color").c_str());
 		glGetUniformfv(shader->GetShaderID(), lightsPosition, &values[i * 6]);
 		glGetUniformfv(shader->GetShaderID(), lightsColor, &values[i * 6 + 3]);
-		//std::cout << "Light " << i << " Position: (" << values[i * 6] << ", " << values[i * 6 + 1] << ", " << values[i * 6 + 2] << ")" << std::endl;
-		//std::cout << "Light " << i << " Color: (" << values[i * 6 + 3] << ", " << values[i * 6 + 4] << ", " << values[i * 6 + 5] << ")" << std::endl;
+		std::cout << "Light " << i << " Position: (" << values[i * 6] << ", " << values[i * 6 + 1] << ", " << values[i * 6 + 2] << ")" << std::endl;
+		std::cout << "Light " << i << " Color: (" << values[i * 6 + 3] << ", " << values[i * 6 + 4] << ", " << values[i * 6 + 5] << ")" << std::endl;
 	}
 	int a{};
 	glGetUniformiv(shader->GetShaderID(), lightCount, &a);
