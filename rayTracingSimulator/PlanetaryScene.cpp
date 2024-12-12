@@ -76,7 +76,6 @@ void ys::PlanetaryScene::Init()
 	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 	sp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	sp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
-
 	SetUpFBO(iToolSize_X, iToolSize_Y);
 }
 
@@ -112,11 +111,15 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	unsigned int viewLocation = glGetUniformLocation(shader->GetShaderID(), "viewTrans"); //--- 뷰잉 변환 설정
 	unsigned int transformLocation = glGetUniformLocation(shader->GetShaderID(), "worldTrans");
 
+	//Imgui_Manager::Get_Imgui_Manager()->SetObject_Matrix(mainObject->GetComponent<Transform>()->GetWorldMatrix()); //imgui에 객체의 월드행렬을 넘겨 줌
+
 	glm::mat4 projection = renderer::mainCamera->GetmainProjectionMatrix(); //--- 투영 공간 설정: fovy, aspect, near, far
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+	Imgui_Manager::Get_Imgui_Manager()->SetProjection_Matrix(projection); // imgui에 투영행렬 넘겨 줌
 
 	glm::mat4 view = renderer::mainCamera->GetmainViewMatrix();
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+	Imgui_Manager::Get_Imgui_Manager()->SetCamera_Matrix(view); // imgui에 카메라 행렬 넘겨 줌
 
 	glm::mat4 axisWorldTrans{ 1.0f };
 	glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(axisWorldTrans));

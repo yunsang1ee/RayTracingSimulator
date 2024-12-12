@@ -17,6 +17,14 @@ GLuint ys::Imgui_Manager::phongTexture = 0;
 GLuint ys::Imgui_Manager::raytracingTexture = 0;
 GLuint ys::Imgui_Manager::resizeTexture = 0;
 
+glm::mat4 ys::Imgui_Manager::CameraMatrix = glm::mat4(1.0);
+glm::mat4 ys::Imgui_Manager::Projection = glm::mat4(1.0);
+glm::mat4 ys::Imgui_Manager::ObjectMatrix = glm::mat4(1.0);
+
+
+
+
+
 ys::Imgui_Manager::Imgui_Manager()
 {
 }
@@ -81,13 +89,28 @@ void ys::Imgui_Manager::Render()
 		| ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
 	ImGui::Begin("Phong", nullptr, window_flags);
+
 	ImGui::Image(phongTexture, ImVec2(640 * 2, 360 * 2), ImVec2(0, 1), ImVec2(1, 0));
 
 
 
+	// 나중에 여기에 물체를 받아와서 물체가 있다면? 검사를 해줄것임
+	{
+		// gizmos
+		ImGuizmo::SetOrthographic(false); // 원근 투영에 하고 싶으니까 직교 끄기
+		ImGuizmo::SetDrawlist();
+
+		float WindowWidth = (float)ImGui::GetWindowWidth();
+		float WindowHeight = (float)ImGui::GetWindowHeight();
 
 
+		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, WindowWidth, WindowHeight);
 
+		// 카메라를 가져와야 함
+
+		ImGuizmo::Manipulate(glm::value_ptr(CameraMatrix), glm::value_ptr(Projection),
+			ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(ObjectMatrix));
+	}
 	ImGui::End();
 
 
@@ -105,24 +128,7 @@ void ys::Imgui_Manager::Render()
 	ImGuiWindowFlags tool_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 	ImGui::Begin("Object", nullptr, tool_flags);
 
-	// 나중에 여기에 물체를 받아와서 물체가 있다면? 검사를 해줄것임
-	{
-		// gizmos
-		ImGuizmo::SetOrthographic(false); // 원근 투영에 하고 싶으니까 직교 끄기
-		ImGuizmo::SetDrawlist();
 
-		float WindowWidth = (float)ImGui::GetWindowWidth();
-		float WindowHeight = (float)ImGui::GetWindowHeight();
-
-
-		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, WindowWidth, WindowHeight);
-
-		// 카메라를 가져와야 함
-		auto CameraEntity = {nullptr};
-
-
-
-	}
 
 	ImGui::End();
 
@@ -164,4 +170,19 @@ void ys::Imgui_Manager::SetFBO_Two(GLuint fboTexture)
 	raytracingTexture = fboTexture;
 }
 
+void ys::Imgui_Manager::SetCamera_Matrix(glm::mat4 _mat)
+{
+	CameraMatrix = _mat;
 
+}
+
+void ys::Imgui_Manager::SetProjection_Matrix(glm::mat4 _mat)
+{
+	Projection = _mat;
+
+}
+
+void ys::Imgui_Manager::SetObject_Matrix(glm::mat4 _mat)
+{
+	ObjectMatrix = _mat;
+}

@@ -48,6 +48,10 @@ namespace ys
 
 		static void SetFBO_Two(GLuint fboTexture);
 
+		static void SetCamera_Matrix(glm::mat4 _mat);
+		static void SetProjection_Matrix(glm::mat4 _mat);
+		static void SetObject_Matrix(glm::mat4 _mat);
+
 
 	private: // 나중에 여기에 변수 추가
 		static Imgui_Manager* imgui_Manager;
@@ -57,8 +61,14 @@ namespace ys
 		static GLuint raytracingTexture;
 		static GLuint resizeTexture;
 
+		//static void* Camera;
 		static int iSubView_X;
 		static int iSubView_Y;
+
+		static glm::mat4 CameraMatrix; // 카메라 행렬
+		static glm::mat4 Projection; // 투영 행렬
+		static glm::mat4 ObjectMatrix; // 선택한 객체 행렬
+
 
 	};
 }
