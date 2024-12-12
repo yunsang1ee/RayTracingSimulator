@@ -68,7 +68,7 @@ void ys::PlanetaryScene::Init()
 	lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	lightSp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
 
-	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
+	mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
 	auto tr = mainObject->GetComponent<Transform>();
 	//tr->SetScale(glm::vec3(100.0f, 100.0f, 100.0f));
 	auto sp = mainObject->AddComponent<SpriteRenderer>();
@@ -112,7 +112,8 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	unsigned int transformLocation = glGetUniformLocation(shader->GetShaderID(), "worldTrans");
 
 	//Imgui_Manager::Get_Imgui_Manager()->SetObject_Matrix(mainObject->GetComponent<Transform>()->GetWorldMatrix()); //imgui에 객체의 월드행렬을 넘겨 줌
-
+	Imgui_Manager::Get_Imgui_Manager()->SetObject(mainObject); //imgui에 객체의 월드행렬을 넘겨 줌
+	
 	glm::mat4 projection = renderer::mainCamera->GetmainProjectionMatrix(); //--- 투영 공간 설정: fovy, aspect, near, far
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 	Imgui_Manager::Get_Imgui_Manager()->SetProjection_Matrix(projection); // imgui에 투영행렬 넘겨 줌

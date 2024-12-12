@@ -1,6 +1,7 @@
 #pragma once
 #include "CommonInclude.h"
 
+
 namespace ys
 {
 	class Imgui_Manager
@@ -50,7 +51,11 @@ namespace ys
 
 		static void SetCamera_Matrix(glm::mat4 _mat);
 		static void SetProjection_Matrix(glm::mat4 _mat);
-		static void SetObject_Matrix(glm::mat4 _mat);
+		static void SetObject(ys::GameObject* Game_Object);
+
+
+	private:
+		static void Change_Transform_Object();
 
 
 	private: // 나중에 여기에 변수 추가
@@ -61,13 +66,18 @@ namespace ys
 		static GLuint raytracingTexture;
 		static GLuint resizeTexture;
 
+
+		// Gizmo type
+
+		static int iGizmo_type;
+
 		//static void* Camera;
 		static int iSubView_X;
 		static int iSubView_Y;
 
 		static glm::mat4 CameraMatrix; // 카메라 행렬
 		static glm::mat4 Projection; // 투영 행렬
-		static glm::mat4 ObjectMatrix; // 선택한 객체 행렬
+		static ys::GameObject* Object_Pointer; // 선택한 객체 행렬
 
 
 	};

@@ -1,4 +1,5 @@
 #include "ysImgui_Manager.h"
+
 #include <iostream>
 
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -7,6 +8,9 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_opengl3_loader.h"
 #include "ImGuizmo.h"
+#include "ysGameObject.h"
+#include "ysTransform.h"
+#include "ysInputManager.h"
 
 
 ys::Imgui_Manager* ys::Imgui_Manager::imgui_Manager = nullptr;
@@ -17,11 +21,14 @@ GLuint ys::Imgui_Manager::phongTexture = 0;
 GLuint ys::Imgui_Manager::raytracingTexture = 0;
 GLuint ys::Imgui_Manager::resizeTexture = 0;
 
+
+int ys::Imgui_Manager::iGizmo_type = ImGuizmo::OPERATION::TRANSLATE;
+
+
+
 glm::mat4 ys::Imgui_Manager::CameraMatrix = glm::mat4(1.0);
 glm::mat4 ys::Imgui_Manager::Projection = glm::mat4(1.0);
-glm::mat4 ys::Imgui_Manager::ObjectMatrix = glm::mat4(1.0);
-
-
+ys::GameObject* ys::Imgui_Manager::Object_Pointer = nullptr;
 
 
 
@@ -92,25 +99,9 @@ void ys::Imgui_Manager::Render()
 
 	ImGui::Image(phongTexture, ImVec2(640 * 2, 360 * 2), ImVec2(0, 1), ImVec2(1, 0));
 
+	Change_Transform_Object();
 
-
-	// 나중에 여기에 물체를 받아와서 물체가 있다면? 검사를 해줄것임
-	{
-		// gizmos
-		ImGuizmo::SetOrthographic(false); // 원근 투영에 하고 싶으니까 직교 끄기
-		ImGuizmo::SetDrawlist();
-
-		float WindowWidth = (float)ImGui::GetWindowWidth();
-		float WindowHeight = (float)ImGui::GetWindowHeight();
-
-
-		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, WindowWidth, WindowHeight);
-
-		// 카메라를 가져와야 함
-
-		ImGuizmo::Manipulate(glm::value_ptr(CameraMatrix), glm::value_ptr(Projection),
-			ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(ObjectMatrix));
-	}
+	
 	ImGui::End();
 
 
@@ -182,7 +173,80 @@ void ys::Imgui_Manager::SetProjection_Matrix(glm::mat4 _mat)
 
 }
 
-void ys::Imgui_Manager::SetObject_Matrix(glm::mat4 _mat)
+void ys::Imgui_Manager::SetObject(ys::GameObject* Game_Object)
 {
-	ObjectMatrix = _mat;
+	Object_Pointer = Game_Object;
+}
+
+void ys::Imgui_Manager::Change_Transform_Object()
+{
+	if (ys::InputManager::getKeyDown('q'))
+	{
+		iGizmo_type = ImGuizmo::OPERATION::TRANSLATE;
+	}
+
+	if (ys::InputManager::getKeyDown('e'))
+	{
+		iGizmo_type = ImGuizmo::OPERATION::SCALE;
+	}
+
+	if (ys::InputManager::getKeyDown('r'))
+	{
+		iGizmo_type = ImGuizmo::OPERATION::ROTATE;
+	}
+
+	
+
+	if (Object_Pointer != nullptr && iGizmo_type != -1) // 물체를 받아와서 물체가 있다면? 검사
+	{
+		// gizmos
+		ImGuizmo::SetOrthographic(false); // 원근 투영에 하고 싶으니까 직교 끄기
+		ImGuizmo::SetDrawlist();
+
+		float WindowWidth = (float)ImGui::GetWindowWidth();
+		float WindowHeight = (float)ImGui::GetWindowHeight();
+
+
+		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, WindowWidth, WindowHeight);
+
+		// 카메라를 가져와야 함
+
+		glm::mat4 Object_Matrix = Object_Pointer->GetComponent<Transform>()->GetWorldMatrix();
+
+		ImGuizmo::Manipulate(glm::value_ptr(CameraMatrix), glm::value_ptr(Projection),
+			(ImGuizmo::OPERATION)iGizmo_type, ImGuizmo::LOCAL, glm::value_ptr(Object_Matrix));
+
+		if (ImGuizmo::IsUsing())
+		{
+			float translation[3], rotation[3], scale[3];
+
+			float ObjMatrix[4][4] = {};
+
+			for (int i = 0; i < 4; ++i)
+			{
+				for (int j = 0; j < 4; ++j)
+				{
+					ObjMatrix[i][j] = Object_Matrix[i][j];
+				}
+			}
+
+			ImGuizmo::DecomposeMatrixToComponents(&ObjMatrix[0][0], translation, rotation, scale);
+
+
+			// 회전
+			glm::vec3 Origin_Rotation = Object_Pointer->GetComponent<Transform>()->GetRotation(); // 현재 원래 회전 값
+			glm::vec3 Delta_Rotation = glm::vec3(rotation[0], rotation[1], -rotation[2]) - Origin_Rotation; // 회전 변화량 // z 축 반전을 하지않으면 회전이 이상하게 됨
+			if (Delta_Rotation[0] != 0.0f)
+			{
+				int i = 5;
+			}
+
+			Origin_Rotation += Delta_Rotation; // 변화량 더하기
+
+			Object_Pointer->GetComponent<Transform>()->SetPosition(glm::vec3(translation[0], translation[1], translation[2]));
+			Object_Pointer->GetComponent<Transform>()->SetRotation(Origin_Rotation);
+			Object_Pointer->GetComponent<Transform>()->SetScale(glm::vec3(scale[0], scale[1], scale[2]));
+		}
+	}
+
 }
