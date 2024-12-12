@@ -37,6 +37,7 @@ namespace ys
 
 		CollisionManager::Init();
 		SceneManager::Init();
+		Imgui_Manager::Get_Imgui_Manager()->PostInit();
 	}
 
 	void Application::Run()

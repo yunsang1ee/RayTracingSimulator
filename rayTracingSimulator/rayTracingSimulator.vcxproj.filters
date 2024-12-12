@@ -16,6 +16,9 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{1c6c6090-e38e-4c2c-a278-95e9ea9e1f66}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Imguizmo">
+      <UniqueIdentifier>{541e4c46-84c6-4445-a0f4-4af9567af645}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -24,55 +27,73 @@
     <ClCompile Include="glad.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\imgui.cpp">
+    <ClCompile Include="CameraScript.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PlanetaryScene.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_demo.cpp">
+    <ClCompile Include="imgui_draw.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_draw.cpp">
+    <ClCompile Include="imgui_impl_glfw.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_impl_glfw.cpp">
+    <ClCompile Include="imgui_impl_opengl3.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_impl_opengl3.cpp">
+    <ClCompile Include="imgui_tables.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_tables.cpp">
+    <ClCompile Include="imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\imgui_widgets.cpp">
-      <Filter>imgui</Filter>
+    <ClCompile Include="..\include\gizmo\GraphEditor.cpp">
+      <Filter>Imguizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\gizmo\ImCurveEdit.cpp">
+      <Filter>Imguizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\gizmo\ImGradient.cpp">
+      <Filter>Imguizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\gizmo\ImGuizmo.cpp">
+      <Filter>Imguizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\gizmo\ImSequencer.cpp">
+      <Filter>Imguizmo</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="imgui\imconfig.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="CameraScript.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imgui.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="PlanetaryScene.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imgui_impl_glfw.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="ResourceLoad.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imgui_impl_opengl3.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="..\include\gizmo\GraphEditor.h">
+      <Filter>Imguizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imgui_impl_opengl3_loader.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="..\include\gizmo\ImCurveEdit.h">
+      <Filter>Imguizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imgui_internal.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="..\include\gizmo\ImGradient.h">
+      <Filter>Imguizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imstb_rectpack.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="..\include\gizmo\ImGuizmo.h">
+      <Filter>Imguizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imstb_textedit.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="..\include\gizmo\ImSequencer.h">
+      <Filter>Imguizmo</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imstb_truetype.h">
-      <Filter>imgui</Filter>
+    <ClInclude Include="..\include\gizmo\ImZoomSlider.h">
+      <Filter>Imguizmo</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,5 @@
 #pragma once
 #include "ysResource.h"
-#include <ysGraphics.h>
 
 namespace ys::graphics
 {
@@ -12,29 +11,36 @@ namespace ys::graphics
 
 		virtual HRESULT Load(const std::wstring& path) override;
 
-		bool Create(const ys::graphics::ShaderStage stage, const std::wstring& fileName);
+		bool Create(const std::wstring stage, const std::wstring& fileName);
 
 		GLuint CreateVertexShader(std::wstring path);
 		GLuint CreateFragmentShader(std::wstring path);
 		GLuint CreateComputeShader(std::wstring path);
 		GLuint GetShaderID() const { return shaderID; }
 
-		void Bind() const 
+		void Bind(GLuint computeShaderOffset = 0) const
 		{
 			glUseProgram(shaderID);
-			if (computeShader) 
+			if (isComputeShader)
 			{
-				glDispatchCompute(16, 16, 1);
+				glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, dispatchIndirectBuffer);
+				glDispatchComputeIndirect(computeShaderOffset);
 				glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 			}
 		}
-		void Unbind() const { glUseProgram(0); }
+
+		void Unbind() const 
+		{
+			glUseProgram(0);
+			glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
+		}
 
 	private:
 		GLuint shaderID;
 		GLuint vertexShader;
 		GLuint fragmentShader;
+		bool isComputeShader;
 		GLuint computeShader;
+		GLuint dispatchIndirectBuffer;
 	};
 }
-

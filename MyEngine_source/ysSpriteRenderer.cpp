@@ -11,7 +11,7 @@
 
 ys::SpriteRenderer::SpriteRenderer()
 	: Component(enums::ComponentType::SpriteRenderer)
-	, texture(nullptr), shader(nullptr), mesh(nullptr)
+	, texture(nullptr), shader(nullptr), mesh(nullptr)/*, objectColor()*/, isAmbient(true)
 	//, size (glm::vec2(1.0f, 1.0f)), offsetLT(glm::vec2()), offsetRB(glm::vec2())
 {
 }
@@ -26,6 +26,8 @@ void ys::SpriteRenderer::Init()
 
 void ys::SpriteRenderer::Update()
 {
+
+	if (InputManager::getKeyDown('m')) isAmbient = !isAmbient;
 }
 
 void ys::SpriteRenderer::LateUpdate()
@@ -34,7 +36,6 @@ void ys::SpriteRenderer::LateUpdate()
 
 void ys::SpriteRenderer::Render(HDC hDC)
 {
-
 	shader->Bind();
 	unsigned int projectionLocation = glGetUniformLocation(shader->GetShaderID(), "projectionTrans"); //--- 투영 변환 값 설정
 	unsigned int viewLocation = glGetUniformLocation(shader->GetShaderID(), "viewTrans"); //--- 뷰잉 변환 설정
@@ -82,6 +83,7 @@ void ys::SpriteRenderer::Render(HDC hDC)
 		glUniform3fv(lightsColor, 1, glm::value_ptr(lightsInfo[i].color));
 	}
 	glUniform1i(lightCount, lightsInfo.size());
+	glUniform4fv(objectColor, 1, glm::value_ptr(this->objectColor));
 
 	std::vector<GLfloat> values(10 * 6);
 	for (int i = 0; i < lightsInfo.size(); ++i)
@@ -95,9 +97,6 @@ void ys::SpriteRenderer::Render(HDC hDC)
 	}
 	int a{};
 	glGetUniformiv(shader->GetShaderID(), lightCount, &a);
-
-	glUniform4fv(objectColor, 1, glm::value_ptr(this->objectColor));
-
 	std::cout << a << std::endl;
 
 	glDrawElements(mesh->GetUsageType(), mesh->GetIndicesCount(), GL_UNSIGNED_INT, (void*)0);

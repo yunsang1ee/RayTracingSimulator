@@ -4,7 +4,7 @@
 #include <iostream>
 
 ys::graphics::Shader::Shader()
-	: Resource(enums::ResourceType::Shader) 
+	: Resource(enums::ResourceType::Shader), isComputeShader(false)
 {
 }
 
@@ -15,21 +15,15 @@ ys::graphics::Shader::~Shader()
 
 HRESULT ys::graphics::Shader::Load(const std::wstring& path)
 {
-	size_t fineNameBeginOffset = path.rfind(L"\\") + 1;
-	size_t fineNameEndOffset = path.length() - fineNameBeginOffset;
-	const std::wstring fileName(path.substr(fineNameBeginOffset, fineNameEndOffset));
+	std::wistringstream stream(path);
+	std::wstring fileName;
+	std::getline(stream, fileName, L',');
 
 	shaderID = glCreateProgram();
 
-	if (!Create(ShaderStage::VS, fileName)) 
-		return S_FALSE;
-	else 
-		glAttachShader(shaderID, vertexShader);
-
-	if (!Create(ShaderStage::FS, fileName))
-		return S_FALSE;
-	else
-		glAttachShader(shaderID, fragmentShader);
+	std::wstring stage;
+	while (std::getline(stream, stage, L','))
+		if (!Create(stage, fileName)) return S_FALSE;
 
 	glLinkProgram(shaderID);
 
@@ -46,32 +40,33 @@ HRESULT ys::graphics::Shader::Load(const std::wstring& path)
 	return S_OK;
 }
 
-bool ys::graphics::Shader::Create(const ys::graphics::ShaderStage stage, const std::wstring& fileName)
+bool ys::graphics::Shader::Create(const std::wstring stage, const std::wstring& fileName)
 {
-	switch (stage)
-	{
-	case ys::graphics::ShaderStage::VS:
-		if (CreateVertexShader(fileName) == -1) return false;
-		break;
-	case ys::graphics::ShaderStage::HS:
-		break;
-	case ys::graphics::ShaderStage::DS:
-		break;
-	case ys::graphics::ShaderStage::GS:
-		break;
-	case ys::graphics::ShaderStage::FS:
-		if (CreateFragmentShader(fileName) == -1) return false;
-		break;
-	case ys::graphics::ShaderStage::CS:
-		if (CreateComputeShader(fileName) == -1) return false;
-		break;
-	case ys::graphics::ShaderStage::All:
-		break;
-	case ys::graphics::ShaderStage::End:
-		break;
-	default:
-		break;
-	}
+	if (stage == L"VS")
+		if (CreateVertexShader(fileName) == -1)
+			return false;
+		else
+			glAttachShader(shaderID, vertexShader);
+	else if (stage == L"HS")
+		;
+	else if (stage == L"GS")
+		;
+	else if (stage == L"DS")
+		;
+	else if (stage == L"FS")
+		if (CreateFragmentShader(fileName) == -1)
+			return false;
+		else
+			glAttachShader(shaderID, fragmentShader);
+	else if (stage == L"CS")
+		if (CreateComputeShader(fileName) == -1)
+			return false;
+		else
+			glAttachShader(shaderID, computeShader);
+	else if (stage == L"ALL")
+		;
+	else
+		return false;
 
 	return true;
 }
@@ -79,7 +74,6 @@ bool ys::graphics::Shader::Create(const ys::graphics::ShaderStage stage, const s
 GLuint ys::graphics::Shader::CreateVertexShader(std::wstring path)
 {
 	GLint result;
-	GLchar errorLog[512];
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	std::ifstream file(L"..\\ShaderSource\\" + path + L"VS.glsl");
 	std::stringstream buffer; buffer << file.rdbuf();
@@ -90,6 +84,7 @@ GLuint ys::graphics::Shader::CreateVertexShader(std::wstring path)
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &result);
 	if (!result)
 	{
+		GLchar errorLog[512];
 		glGetShaderInfoLog(vertexShader, 512, NULL, errorLog);
 		std::cerr << "ERROR: vertexShader 컴파일 실패\n" << errorLog << std::endl;
 		return -1;
@@ -100,7 +95,6 @@ GLuint ys::graphics::Shader::CreateVertexShader(std::wstring path)
 GLuint ys::graphics::Shader::CreateFragmentShader(std::wstring path)
 {
 	GLint result;
-	GLchar errorLog[512];
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	std::ifstream file(L"..\\ShaderSource\\" + path + L"FS.glsl");
 	std::stringstream buffer; buffer << file.rdbuf();
@@ -111,6 +105,7 @@ GLuint ys::graphics::Shader::CreateFragmentShader(std::wstring path)
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &result);
 	if (!result)
 	{
+		GLchar errorLog[512];
 		glGetShaderInfoLog(fragmentShader, 512, NULL, errorLog);
 		std::cerr << "ERROR: fragmentShader 컴파일 실패\n" << errorLog << std::endl;
 		return -1;
@@ -121,7 +116,7 @@ GLuint ys::graphics::Shader::CreateFragmentShader(std::wstring path)
 GLuint ys::graphics::Shader::CreateComputeShader(std::wstring path)
 {
 	GLint result;
-	GLchar errorLog[512];
+	isComputeShader = true;
 	computeShader = glCreateShader(GL_COMPUTE_SHADER);
 	std::ifstream file(L"..\\ShaderSource\\" + path + L"CS.glsl");
 	std::stringstream buffer; buffer << file.rdbuf();
@@ -132,9 +127,16 @@ GLuint ys::graphics::Shader::CreateComputeShader(std::wstring path)
 	glGetShaderiv(computeShader, GL_COMPILE_STATUS, &result);
 	if (!result)
 	{
+		GLchar errorLog[512];
 		glGetShaderInfoLog(computeShader, 512, NULL, errorLog);
 		std::cerr << "ERROR: computeShader 컴파일 실패\n" << errorLog << std::endl;
 		return -1;
 	}
+	glGenBuffers(1, &dispatchIndirectBuffer);
+	glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, dispatchIndirectBuffer);
+
+	GLuint dispatchParams[9] = { 8, 8, 1, 16, 16, 1, 32, 32, 1 };
+	glBufferData(GL_DISPATCH_INDIRECT_BUFFER, sizeof(dispatchParams), dispatchParams, GL_DYNAMIC_DRAW);
+
 	return computeShader;
 }

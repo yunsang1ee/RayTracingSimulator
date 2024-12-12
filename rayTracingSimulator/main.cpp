@@ -13,16 +13,13 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "imgui_impl_opengl3_loader.h"
 #include "PlanetaryScene.h"
-#include <ysResources.h>
-#include <ysShader.h>
+#include "ResourceLoad.h"
 
-static float kWidth = 1920, kHight = 1080;
+static float kWidth = 2320, kHight = 1080;
 
 ys::Application app;
 
-unsigned int CreateShader(std::string vertexPath, std::string fragmentPath);
 std::string readFile(const std::string&);
 
 void FramebufferCallback(GLFWwindow* window, int w, int h);
@@ -57,7 +54,7 @@ int main(int argc, char** argv)
 		glfwTerminate();
 		return -1;
 	}
-	glfwSetWindowPos(window, 600, 100);
+	glfwSetWindowPos(window, 100, 100);
 	glfwMakeContextCurrent(window);
 
 	//initialize GLAD (func pointer)
@@ -106,12 +103,14 @@ int main(int argc, char** argv)
 		return -1; 
 	}
 
-	ys::Resources::Load<ys::graphics::Shader>(L"vc", L"vc");
+	ys::ResourceLoad();
 
 	//shader(glsl) initialize
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 	app.Init(hWnd, window, RECT(0, 0, kWidth, kHight), false);
 	glViewport(0, 0, kWidth, kHight);
+	glEnable(GL_DEPTH_TEST); glDepthMask(GL_TRUE); glClearDepth(1.0f);
+	glEnable(GL_CULL_FACE);      
 
 	//set Scene
 	ys::SceneManager::CreateScene<ys::PlanetaryScene>(std::wstring(L"mainScene"));// issue
@@ -168,7 +167,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 				key += 32;
 			}
 		}
-		std::cout << key << " " << (char)key << " " << action << ' ' << std::bitset<8>(mods) << std::endl;
+		//std::cout << key << " " << (char)key << " " << action << ' ' << std::bitset<8>(mods) << std::endl;
 		ys::InputManager::setKeyState(key, action & GLFW_REPEAT, action == GLFW_RELEASE);
 	}
 }
@@ -179,8 +178,8 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 	if (!ImGui::GetIO().WantCaptureMouse) 
 	{ 
 		// ImGui가 입력을 캡처하지 않을 때 애플리케이션 입력 처리
-		std::cout << "Mouse: " << std::string((button == 0) ? "Left" : (button == 1) ? "Right" : (button == 2) ? "Middle" : std::to_string(button)) << ", Pos: " << ys::InputManager::getMousePosition().x << ", " << ys::InputManager::getMousePosition().y 
-			<< " " << action << std::endl;
+		//std::cout << "Mouse: " << std::string((button == 0) ? "Left" : (button == 1) ? "Right" : (button == 2) ? "Middle" : std::to_string(button)) << ", Pos: " << ys::InputManager::getMousePosition().x << ", " << ys::InputManager::getMousePosition().y 
+		//	<< " " << action << std::endl;
 		ys::InputManager::setKeyState(button + 0x80, action & GLFW_REPEAT, action == GLFW_RELEASE); 
 	}
 }

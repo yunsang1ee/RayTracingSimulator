@@ -14,10 +14,16 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)legenoCS.glsl" />
-    <None Include="$(MSBuildThisFileDirectory)pongFS.glsl" />
-    <None Include="$(MSBuildThisFileDirectory)pongVS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)legeno16CS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)legeno32CS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)legeno8CS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)phongFS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)phongVS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)testFS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)vcFS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)vcVS.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)mixFS.glsl" />
   </ItemGroup>
 </Project>
