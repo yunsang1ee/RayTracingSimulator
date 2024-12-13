@@ -117,7 +117,6 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <IncludeInUnityFile>true</IncludeInUnityFile>
-      <AdditionalIncludeDirectories>../include\gizmo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,11 +144,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\include\gizmo\GraphEditor.cpp" />
-    <ClCompile Include="..\include\gizmo\ImCurveEdit.cpp" />
-    <ClCompile Include="..\include\gizmo\ImGradient.cpp" />
-    <ClCompile Include="..\include\gizmo\ImGuizmo.cpp" />
-    <ClCompile Include="..\include\gizmo\ImSequencer.cpp" />
+    <ClCompile Include="..\include\GraphEditor.cpp" />
+    <ClCompile Include="..\include\ImCurveEdit.cpp" />
+    <ClCompile Include="..\include\ImGradient.cpp" />
+    <ClCompile Include="..\include\ImGuizmo.cpp" />
+    <ClCompile Include="..\include\ImSequencer.cpp" />
     <ClCompile Include="CameraScript.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="imgui.cpp" />
@@ -162,12 +161,12 @@
     <ClCompile Include="PlanetaryScene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\gizmo\GraphEditor.h" />
-    <ClInclude Include="..\include\gizmo\ImCurveEdit.h" />
-    <ClInclude Include="..\include\gizmo\ImGradient.h" />
-    <ClInclude Include="..\include\gizmo\ImGuizmo.h" />
-    <ClInclude Include="..\include\gizmo\ImSequencer.h" />
-    <ClInclude Include="..\include\gizmo\ImZoomSlider.h" />
+    <ClInclude Include="..\include\GraphEditor.h" />
+    <ClInclude Include="..\include\ImCurveEdit.h" />
+    <ClInclude Include="..\include\ImGradient.h" />
+    <ClInclude Include="..\include\ImGuizmo.h" />
+    <ClInclude Include="..\include\ImSequencer.h" />
+    <ClInclude Include="..\include\ImZoomSlider.h" />
     <ClInclude Include="CameraScript.h" />
     <ClInclude Include="PlanetaryScene.h" />
     <ClInclude Include="ResourceLoad.h" />

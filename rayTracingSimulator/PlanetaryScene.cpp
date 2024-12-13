@@ -17,7 +17,8 @@ extern ys::Application app;
 ys::PlanetaryScene::PlanetaryScene()
 	: ssboSphereSize(sizeof(Sphere) * 10)
 	, screenSize(1920, 1080)
-	, maxBounceCount(500)
+	, maxBounceCount(30)
+	, rayPerPixel(1)
 {
 }
 
@@ -43,15 +44,17 @@ void ys::PlanetaryScene::Init()
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 
 	SetUpFBO(screenSize.x, screenSize.y);
-
-	// 모든 객체 넣기	
-	AllObject.push_back(light);
-	AllObject.push_back(mainObject);
 }
 
 void ys::PlanetaryScene::Update()
 {
 	Scene::Update();
+
+	if (InputManager::getKeyDown('b')) maxBounceCount++;
+	if (InputManager::getKeyDown('B') && maxBounceCount > 0) maxBounceCount--;
+
+	if (InputManager::getKeyDown('n')) rayPerPixel++;
+	if (InputManager::getKeyDown('N') && rayPerPixel > 0) rayPerPixel--;
 
 	if (InputManager::getKeyDown(GLFW_KEY_ESCAPE))
 		glfwSetWindowShouldClose(app.getWindow(), GL_TRUE);
@@ -95,6 +98,7 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 
 		float check_dis = 0.f;
 
+		auto AllObject = GetLayer(enums::LayerType::Object)->GetGameObjects();
 		for (int i = 0; i < AllObject.size(); ++i)
 		{
 			check_dis = Imgui_Manager::Get_Imgui_Manager()->Check_Object(AllObject[i]);
@@ -114,6 +118,14 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 		else
 		{
 			Imgui_Manager::Get_Imgui_Manager()->SetObject(AllObject[Choice_Index]);
+		}
+	}
+	else
+	{
+		auto object = Imgui_Manager::Get_Imgui_Manager()->GetPickedObject();
+		if (object)
+		{
+			spheresIndex[reinterpret_cast<uintptr_t>(object)].first = true;
 		}
 	}
 	
@@ -165,6 +177,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	unsigned int maxBounceCount = glGetUniformLocation(shader->GetShaderID(), "maxBounceCount");
 	unsigned int screenSize = glGetUniformLocation(shader->GetShaderID(), "screenSize");
 	unsigned int numRenderedFrame = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
+	unsigned int rayPerPixel = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
 
 	glUniformMatrix4fv(invProjectionMatrix, 1, GL_FALSE
 		, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
@@ -182,6 +195,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glUniform2uiv(screenSize, 1
 		, glm::value_ptr(this->screenSize));
 	glUniform1ui(numRenderedFrame, this->frameCount);
+	glUniform1ui(rayPerPixel, this->rayPerPixel);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, position));
@@ -355,6 +369,23 @@ void ys::PlanetaryScene::GenObject()
 
 void ys::PlanetaryScene::UpdateSSBO()
 {
+	for (auto& [key, value] : spheresIndex)
+	{
+		auto& [dirty, index] = value;
+		if (!dirty) continue;
+
+		auto object = reinterpret_cast<GameObject*>(key);
+		auto tr = object->GetComponent<Transform>();
+		auto sp = object->GetComponent<SpriteRenderer>();
+
+		spheres[index].center = tr->GetPosition();
+
+		auto scale = tr->GetScale();
+		spheres[index].radius = std::min({ abs(scale.x),abs(scale.y),abs(scale.z) });
+		spheres[index].material = sp->GetMaterial();
+		dirty = false;
+	}
+
 	size_t dataSize = spheres.size() * sizeof(Sphere);
 
 	if (dataSize > ssboSphereSize)

@@ -62,7 +62,7 @@ void main()
 
         float dist = max(distance(lightPos, outData.position.xyz), 1.0);
 
-        if (dist == 1.0)
+        if (abs(dist - spheres[i].radius) < 0.1)
         {
             result += lightColor;
             continue;

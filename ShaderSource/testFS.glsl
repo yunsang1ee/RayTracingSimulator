@@ -7,6 +7,7 @@ uniform vec2 viewportSize;
 uniform uint maxBounceCount;
 uniform uvec2 screenSize;
 uniform uint numRenderedFrame;
+uniform uint rayPerPixel;
 
 out vec4 FragColor;
 
@@ -21,6 +22,7 @@ struct Material
 	vec4 color;             // 16
 	vec4 emittedColor;		// 16
 	float emissionStrength;	// 4	+ 12
+	float padding[3];
 };
 
 struct Sphere
@@ -61,9 +63,9 @@ float RandomValueNormalDistribution(inout uint state) // Box-Muller transform
 
 vec3 RandomDirection(inout uint state)
 {
-	float x = RandomValueNormalDistribution(state);
-	float y = RandomValueNormalDistribution(state);
-	float z = RandomValueNormalDistribution(state);
+	float x = RandomValueNormalDistribution(state) * 2 - 1;
+	float y = RandomValueNormalDistribution(state) * 2 - 1;
+	float z = RandomValueNormalDistribution(state) * 2 - 1;
 	return normalize(vec3(x, y, z));
 }
 
@@ -123,9 +125,6 @@ vec3 Trace(Ray ray, inout uint rngState)
 	vec3 incomingLight = vec3(0.0f);
 	vec3 rayColor = vec3(1.0f);
 	
-//	HitInfo hitInfo = CalculateRayCollision(ray);
-//	if (hitInfo.isHit)
-//		incomingLight += hitInfo.material.color.xyz;
 	for (int i = 0; i <= maxBounceCount; ++i)
 	{
 		HitInfo hitInfo = CalculateRayCollision(ray);
@@ -170,7 +169,15 @@ void main()
 	uint pixelIndex = (pixelCoord.y * numPixel.x + pixelCoord.x);
 
 	uint rngState = pixelIndex + numRenderedFrame;
+	
+	vec3 total = vec3(0.0f);
 
-	FragColor = vec4(Trace(ray, rngState), 1.0f);
+	for(int rayCount = 0; rayCount < rayPerPixel; ++rayCount)
+	{
+		total += Trace(ray, rngState);
+	}
+
+	total /= rayPerPixel;
+	FragColor = vec4(total, 1.0f);
 	//FragColor = vec4(vec3(RandomDirection(rngState)), 1.0f);
 }

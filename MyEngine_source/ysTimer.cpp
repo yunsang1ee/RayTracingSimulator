@@ -22,6 +22,9 @@ namespace ys
 
 	void ys::Timer::Update()
 	{
+		if (InputManager::getKeyDown(GLFW_KEY_SCROLL_LOCK))
+			targetFPS = (targetFPS == 0) ? 144 : 0;
+
 		QueryPerformanceCounter(&curFrequency);
 		float diffFrequency = static_cast<float>(curFrequency.QuadPart - prevFrequency.QuadPart);
 		deltaTime = diffFrequency / static_cast<float>(cpuFrequency.QuadPart);
@@ -46,9 +49,6 @@ namespace ys
 			FPS = 0;
 			curTime = 0;
 		}
-
-		if (InputManager::getKeyDown(GLFW_KEY_SCROLL_LOCK) && InputManager::getKey(VK_CONTROL))
-			targetFPS = (targetFPS == 0) ? 144 : 0;
 	}
 	void Timer::Render(HDC hDC, POINT screen)	
 	{

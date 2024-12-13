@@ -29,8 +29,8 @@ GLuint ys::Imgui_Manager::resizeTexture = 0;
 
 glm::vec3 ys::Imgui_Manager::CameraPos = glm::vec3(0,0,0);
 
-int ys::Imgui_Manager::iPhongView_X = 640 * 2;
-int ys::Imgui_Manager::iPhongView_Y = 360 * 2;
+int ys::Imgui_Manager::iPhongView_X = 640;
+int ys::Imgui_Manager::iPhongView_Y = 360;
 
 
 int ys::Imgui_Manager::iGizmo_type = ImGuizmo::OPERATION::TRANSLATE;

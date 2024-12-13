@@ -50,9 +50,8 @@ namespace ys
 
 		glm::uvec2 screenSize;
 
-		std::vector<GameObject*> AllObject{};
-
 		unsigned int maxBounceCount;
+		unsigned int rayPerPixel;
 		unsigned int frameCount;
 	};
 }

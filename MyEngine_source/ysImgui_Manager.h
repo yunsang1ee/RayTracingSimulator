@@ -64,6 +64,8 @@ namespace ys
 
 		static void Test_Object(ys::GameObject* Game_Object);
 
+		static GameObject* GetPickedObject() { return Object_Pointer; }
+
 
 
 		static float RaySphere(Ray ray, glm::vec3 sphereCenter, float sphereRadius);
