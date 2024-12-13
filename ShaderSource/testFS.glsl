@@ -103,7 +103,7 @@ void main()
     vec3 worldSpace = (inverse(viewMatrix) * vec4(viewSpace.xyz,1.0)).xyz;
 
     Ray ray;
-    ray.origin = (inverse(viewMatrix) * vec4(viewPosition,1.0)).xyz;
+    ray.origin = viewPosition;
     ray.dir = normalize(worldSpace - ray.origin);
 
     FragColor = vec4(normalize(worldSpace), 1.0f);

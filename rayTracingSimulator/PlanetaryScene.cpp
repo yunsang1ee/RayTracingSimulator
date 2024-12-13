@@ -159,7 +159,6 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	auto pos = renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition();
 	glUniform2fv(viewPosition, 1
 		, glm::value_ptr(pos));
-	std::cout << "viewPosition: " << pos.x << ' ' << pos.y << ' ' << pos.z << std::endl;
 	glUniform2fv(viewportSize, 1
 		, glm::value_ptr(glm::vec2(iImguiView_X, iImguiView_Y)));
 

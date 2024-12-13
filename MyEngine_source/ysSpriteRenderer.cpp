@@ -11,7 +11,7 @@
 
 ys::SpriteRenderer::SpriteRenderer()
 	: Component(enums::ComponentType::SpriteRenderer)
-	, texture(nullptr), shader(nullptr), mesh(nullptr)/*, objectColor()*/, isAmbient(true)
+	, texture(nullptr), shader(nullptr), mesh(nullptr), objectColor(), isAmbient(true)
 	//, size (glm::vec2(1.0f, 1.0f)), offsetLT(glm::vec2()), offsetRB(glm::vec2())
 {
 }
