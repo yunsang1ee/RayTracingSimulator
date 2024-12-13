@@ -9,6 +9,17 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyEngine_source", "MyEngine
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShaderSource", "ShaderSource\ShaderSource.vcxitems", "{CA059A0F-878E-48DC-91DD-DFE1D0106370}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Object", "Object", "{A9633AA2-EE68-4D16-BF52-9B4C46D15E99}"
+	ProjectSection(SolutionItems) = preProject
+		Object\blenderCube.obj = Object\blenderCube.obj
+		Object\Cube.obj = Object\Cube.obj
+		Object\lucy.obj = Object\lucy.obj
+		Object\Sphere.obj = Object\Sphere.obj
+		Object\stanford-bunny.obj = Object\stanford-bunny.obj
+		Object\stanford-dragon.obj = Object\stanford-dragon.obj
+		Object\xyzrgb_dragon.obj = Object\xyzrgb_dragon.obj
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

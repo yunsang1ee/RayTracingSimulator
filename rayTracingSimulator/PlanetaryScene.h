@@ -5,19 +5,13 @@ namespace ys
 {
 	class PlanetaryScene : public Scene
 	{
-		struct Material
-		{
-			glm::vec4 color;
-			glm::vec4 emittedColor;
-			glm::vec4 emissionStrength;
-		};
-
 		struct Sphere
 		{
 			glm::vec3 center;
 			float radius;
-			Material material;
+			struct Material material;
 		};
+
 	public:
 		PlanetaryScene();
 		~PlanetaryScene();
@@ -33,6 +27,8 @@ namespace ys
 
 		void PhongRender(HDC hDC, const int& index);
 		void SetUpFBO(int iX, int iY);
+		void GenObject();
+		void UpdateSSBO();
 
 	private:
 		GLuint VAO{};
@@ -46,22 +42,18 @@ namespace ys
 		GLuint phongFramebuffer{}, depthBuffer{}, phongTexture{};
 		//final is default FrameBuffer
 
-		GLuint ssboSphere{};
-		std::map<uintptr_t, Sphere> spheres;
-		GLuint ssboLight{};
+		std::unordered_map<uintptr_t, std::pair<bool, size_t>> spheresIndex;
+		std::vector<Sphere> spheres;
+		GLuint ssboSphere;
+		size_t ssboSphereSize;
+		void* spheresPointer;
 
-		int iImguiView_X;
-		int iImguiView_Y;
+		glm::uvec2 screenSize;
 
-		int iToolSize_X;
-		int iToolSize_Y;
-
-
-	private:
 		std::vector<GameObject*> AllObject{};
 
-		int frameCount = 0; // 현재 멈춘상태로 몇 프레임 돌았는지?
-
+		unsigned int maxBounceCount;
+		unsigned int frameCount;
 	};
 }
 

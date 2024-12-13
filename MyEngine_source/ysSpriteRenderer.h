@@ -6,14 +6,23 @@
 
 namespace ys
 {
+	struct Material
+	{
+		glm::vec4 color;
+		glm::vec4 emittedColor;
+		float emissionStrength;
+		float padding[3];
+
+		Material() = default;
+		Material(const glm::vec4& color, const glm::vec4& emittedColor, float emissionStrength)
+			: color(color), emittedColor(emittedColor), emissionStrength{emissionStrength}
+		{}
+		Material(const Material& other)
+			: color(other.color), emittedColor(other.emittedColor), emissionStrength{other.emissionStrength}
+		{}
+	};
 	class SpriteRenderer : public Component
 	{
-		struct Material
-		{
-			glm::vec4 color;
-			glm::vec4 emittedColor;
-			float emissionStrength;
-		};
 
 	public:
 		SpriteRenderer();
@@ -28,55 +37,22 @@ namespace ys
 		//glm::vec2 GetOffsetLT() { return offsetLT; }
 		//glm::vec2 GetOffsetRB() { return offsetRB; }
 
-		graphics::Texture* GetTexture() { return texture; }
-		Mesh* GetMesh() { return mesh; }
+		graphics::Texture* GetTexture() { return texture;}
+		Mesh* GetMesh() { return mesh;}
+		Material GetMaterial() const { return material;}
 
-		void SetTexture(graphics::Texture* texture) { this->texture = texture; }
-		void SetShader(graphics::Shader* shader) { this->shader = shader; }
-		void SetMesh(Mesh* mesh) { this->mesh = mesh; }
-		void AddLight(GameObject* light, glm::vec3 color) { lights.emplace_back(light, color); }
-		void DelLight(GameObject* light)
-		{
-			lights.erase(remove_if(lights.begin(), lights.end()
-				, [&](const std::pair<GameObject*, glm::vec3>& val) {return val.first == light; })
-				, lights.end());
-		}
-		void SetLightColor(GameObject* light, glm::vec3 color)
-		{
-			std::find_if(lights.begin(), lights.end(), [&](std::pair<GameObject*, glm::vec3>& val) {
-				return val.first == light;
-				}
-			)->second = color;
-		}
-		void SetObjectColor(glm::vec4 color)
-		{
-			objectColor = color;
-		}
-		glm::vec3 GetLightColor(GameObject* light) const
-		{
-			return std::find_if(lights.begin(), lights.end(), [&](const std::pair<GameObject*, glm::vec3>& val) {
-				return val.first == light;
-				}
-			)->second;
-		}
-		//void SetOffset(const glm::vec2& LT, const glm::vec2& RB = glm::vec2())
-		//{
-		//	this->offsetLT = LT;
-		//	this->offsetRB = RB;
-		//}
-		//void SetSizeByTexture(const glm::vec2& size) { this->size = size; }
-		//void SetSizeByScreen(const glm::vec2& size)
-		//{
-		//	this->size.x = size.x / texture->GetWidth();
-		//	this->size.y = size.y / texture->GetHeight();
-		//}
+		void SetTexture(graphics::Texture* texture) { this->texture = texture;}
+		void SetShader(graphics::Shader* shader) { this->shader = shader;}
+		void SetMesh(Mesh* mesh) { this->mesh = mesh;}
+		void SetObjectColor(const glm::vec4& color) { material.color = color;}
+		void SetLightColor(const glm::vec4& color) { material.emittedColor = color;}
+		void SetLightStrength(const float& strength) { material.emissionStrength = strength; }
 
 	private:
 		graphics::Texture* texture;
 		graphics::Shader* shader;
 		Mesh* mesh;
-		std::vector<std::pair<GameObject*, glm::vec3>> lights;
-		glm::vec4 objectColor;
+		Material material;
 		bool isAmbient;
 	};
 }
