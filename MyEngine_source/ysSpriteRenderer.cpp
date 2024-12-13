@@ -11,7 +11,7 @@
 
 ys::SpriteRenderer::SpriteRenderer()
 	: Component(enums::ComponentType::SpriteRenderer)
-	, texture(nullptr), shader(nullptr), mesh(nullptr), objectColor(), isAmbient(true)
+	, texture(nullptr), shader(nullptr), mesh(nullptr), isAmbient(true)
 	//, size (glm::vec2(1.0f, 1.0f)), offsetLT(glm::vec2()), offsetRB(glm::vec2())
 {
 }
@@ -60,44 +60,44 @@ void ys::SpriteRenderer::Render(HDC hDC)
 	unsigned int isTexture = glGetUniformLocation(shader->GetShaderID(), "isTexture");
 	unsigned int isAmbient = glGetUniformLocation(shader->GetShaderID(), "isAmbient");
 	unsigned int viewPos = glGetUniformLocation(shader->GetShaderID(), "viewPos");
-	unsigned int lightCount = glGetUniformLocation(shader->GetShaderID(), "lightCount");
-	unsigned int objectColor = glGetUniformLocation(shader->GetShaderID(), "objectColor");
+	//unsigned int lightCount = glGetUniformLocation(shader->GetShaderID(), "lightCount");
+	//unsigned int objectColor = glGetUniformLocation(shader->GetShaderID(), "objectColor");
 
 	glUniform1i(isTexture, GL_FALSE);
 	glUniform1i(isAmbient, this->isAmbient);
 	glUniform3fv(viewPos, 1, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
-	struct Light
-	{
-		glm::vec3 position;
-		glm::vec3 color;
-	};
-	std::vector<Light> lightsInfo;
-	for (auto& light : this->lights)
-		lightsInfo.emplace_back(light.first->GetComponent<Transform>()->GetPosition(), light.second);
+	//struct Light
+	//{
+	//	glm::vec3 position;
+	//	glm::vec3 color;
+	//};
+	//std::vector<Light> lightsInfo;
+	//for (auto& light : this->lights)
+	//	lightsInfo.emplace_back(light.first->GetComponent<Transform>()->GetPosition(), light.second);
 
-	for (int i = 0; i < lightsInfo.size(); ++i)
-	{
-		unsigned int lightsPosition = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].position").c_str());
-		unsigned int lightsColor = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].color").c_str());
-		glUniform3fv(lightsPosition, 1, glm::value_ptr(lightsInfo[i].position));
-		glUniform3fv(lightsColor, 1, glm::value_ptr(lightsInfo[i].color));
-	}
-	glUniform1i(lightCount, lightsInfo.size());
-	glUniform4fv(objectColor, 1, glm::value_ptr(this->objectColor));
+	//for (int i = 0; i < lightsInfo.size(); ++i)
+	//{
+	//	unsigned int lightsPosition = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].position").c_str());
+	//	unsigned int lightsColor = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].color").c_str());
+	//	glUniform3fv(lightsPosition, 1, glm::value_ptr(lightsInfo[i].position));
+	//	glUniform3fv(lightsColor, 1, glm::value_ptr(lightsInfo[i].color));
+	//}
+	//glUniform1i(lightCount, lightsInfo.size());
+	//glUniform4fv(objectColor, 1, glm::value_ptr(this->material.color));
 
-	std::vector<GLfloat> values(10 * 6);
-	for (int i = 0; i < lightsInfo.size(); ++i)
-	{
-		unsigned int lightsPosition = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].position").c_str());
-		unsigned int lightsColor = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].color").c_str());
-		glGetUniformfv(shader->GetShaderID(), lightsPosition, &values[i * 6]);
-		glGetUniformfv(shader->GetShaderID(), lightsColor, &values[i * 6 + 3]);
-		std::cout << "Light " << i << " Position: (" << values[i * 6] << ", " << values[i * 6 + 1] << ", " << values[i * 6 + 2] << ")" << std::endl;
-		std::cout << "Light " << i << " Color: (" << values[i * 6 + 3] << ", " << values[i * 6 + 4] << ", " << values[i * 6 + 5] << ")" << std::endl;
-	}
-	int a{};
-	glGetUniformiv(shader->GetShaderID(), lightCount, &a);
-	std::cout << a << std::endl;
+	//std::vector<GLfloat> values(10 * 6);
+	//for (int i = 0; i < lightsInfo.size(); ++i)
+	//{
+	//	unsigned int lightsPosition = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].position").c_str());
+	//	unsigned int lightsColor = glGetUniformLocation(shader->GetShaderID(), ("lights[" + std::to_string(i) + "].color").c_str());
+	//	glGetUniformfv(shader->GetShaderID(), lightsPosition, &values[i * 6]);
+	//	glGetUniformfv(shader->GetShaderID(), lightsColor, &values[i * 6 + 3]);
+	//	std::cout << "Light " << i << " Position: (" << values[i * 6] << ", " << values[i * 6 + 1] << ", " << values[i * 6 + 2] << ")" << std::endl;
+	//	std::cout << "Light " << i << " Color: (" << values[i * 6 + 3] << ", " << values[i * 6 + 4] << ", " << values[i * 6 + 5] << ")" << std::endl;
+	//}
+	//int a{};
+	//glGetUniformiv(shader->GetShaderID(), lightCount, &a);
+	//std::cout << a << std::endl;
 
 	glDrawElements(mesh->GetUsageType(), mesh->GetIndicesCount(), GL_UNSIGNED_INT, (void*)0);
 	mesh->UnBind();

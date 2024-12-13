@@ -14,7 +14,8 @@
 extern ys::Application app;
 
 ys::PlanetaryScene::PlanetaryScene()
-	: iImguiView_X(1920), iImguiView_Y(1080), iToolSize_X(1920), iToolSize_Y(1080)
+	: ssboSphereSize(sizeof(Sphere) * 10)
+	, iImguiView_X(1920), iImguiView_Y(1080), iToolSize_X(1920), iToolSize_Y(1080)
 {
 }
 
@@ -29,53 +30,15 @@ void ys::PlanetaryScene::Init()
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
+	GenObject();
+
 	glGenBuffers(1, &ssboSphere);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
-
-
-	float factor = app.getScreenf().x;
-	glGenBuffers(1, &axisVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
-	glm::vec3 axis[] = {
-		{-factor, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
-		{factor, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
-		{0.0f, -factor, 0.0f}, {0.0f, 1.0f, 0.0f},
-		{0.0f, factor, 0.0f}, {0.0f, 1.0f, 0.0f},
-		{0.0f, 0.0f, -factor}, {0.0f, 0.0f, 1.0f},
-		{0.0f, 0.0f, factor}, {0.0f, 0.0f, 1.0f},
-	};
-	glBufferData(GL_ARRAY_BUFFER, sizeof(axis), axis, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &quadVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	graphics::Vertex vertices[] = {
-		{{-1.0f, -1.0f, 0.0f},		{0.0f, 0.0f},		{0.0f, 0.0f, 1.0f}},  // bottom-left corner
-		{{ 1.0f, -1.0f, 0.0f},		{1.0f, 0.0f},		{0.0f, 0.0f, 1.0f}},  // bottom-right corner
-		{{ 1.0f,  1.0f, 0.0f},		{1.0f, 1.0f},		{0.0f, 0.0f, 1.0f}},  // top-right corner
-		{{-1.0f, -1.0f, 0.0f},		{0.0f, 0.0f},		{0.0f, 0.0f, 1.0f}},  // bottom-left corner
-		{{ 1.0f,  1.0f, 0.0f},		{1.0f, 1.0f},		{0.0f, 0.0f, 1.0f}},  // top-right corner 
-		{{-1.0f,  1.0f, 0.0f},		{0.0f, 1.0f},		{0.0f, 0.0f, 1.0f}}   // top-left corner
-	};
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	auto camera = object::Instantiate<GameObject>(enums::LayerType::Camera, glm::vec3(3.0f, 1.0f, 5.0f));
-	renderer::mainCamera = camera->AddComponent<Camera>();
-	camera->AddComponent<CameraScript>();
-
-	auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(2.0f, 0.0f, 0.0f));
-	auto lightSp = light->AddComponent<SpriteRenderer>();
-	lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
-	lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
-	lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	lightSp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
-
-	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
-	auto tr = mainObject->GetComponent<Transform>();
-	//tr->SetScale(glm::vec3(100.0f, 100.0f, 100.0f));
-	auto sp = mainObject->AddComponent<SpriteRenderer>();
-	sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
-	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
-	sp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	sp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
+	glBufferStorage(GL_SHADER_STORAGE_BUFFER, ssboSphereSize, nullptr
+		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	spheresPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ssboSphereSize
+		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 
 	SetUpFBO(iToolSize_X, iToolSize_Y);
 }
@@ -132,6 +95,11 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 
 void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 {
+	// SSBO Update
+	UpdateSSBO();
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
+
 	// 이건 일반 메인화면 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -145,25 +113,25 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	auto shader = ys::Resources::Find<graphics::Shader>(L"test");
 	shader->Bind();
 	glBindVertexArray(VAO);
-	unsigned int projectionMatrix = glGetUniformLocation(shader->GetShaderID(), "projectionMatrix"); //--- 투영 변환 값 설정
-	unsigned int viewMatrix = glGetUniformLocation(shader->GetShaderID(), "viewMatrix"); //--- 뷰잉 변환 설정
+	unsigned int invProjectionMatrix = glGetUniformLocation(shader->GetShaderID(), "invProjectionMatrix"); //--- 투영 변환 값 설정
+	unsigned int invViewMatrix = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix"); //--- 뷰잉 변환 설정
 	unsigned int viewPosition = glGetUniformLocation(shader->GetShaderID(), "viewPosition");
 	unsigned int viewportSize = glGetUniformLocation(shader->GetShaderID(), "viewportSize");
 
-	glUniformMatrix4fv(projectionMatrix, 1, GL_FALSE
-		, glm::value_ptr(renderer::mainCamera->GetmainProjectionMatrix()));
+	glUniformMatrix4fv(invProjectionMatrix, 1, GL_FALSE
+		, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
 
-	glUniformMatrix4fv(viewMatrix, 1, GL_FALSE
-		, glm::value_ptr(renderer::mainCamera->GetmainViewMatrix()));
+	glUniformMatrix4fv(invViewMatrix, 1, GL_FALSE
+		, glm::value_ptr(inverse(renderer::mainCamera->GetmainViewMatrix())));
 
-	auto pos = renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition();
-	glUniform2fv(viewPosition, 1
-		, glm::value_ptr(pos));
+	glUniform3fv(viewPosition, 1
+		, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
+
 	glUniform2fv(viewportSize, 1
 		, glm::value_ptr(glm::vec2(iImguiView_X, iImguiView_Y)));
 
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, position));
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, texture));
 	glEnableVertexAttribArray(1);
@@ -221,4 +189,95 @@ void ys::PlanetaryScene::SetUpFBO(int iX, int iY)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void ys::PlanetaryScene::GenObject()
+{
+	float factor = app.getScreenf().x;
+	glGenBuffers(1, &axisVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
+	glm::vec3 axis[] = {
+		{-factor, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+		{factor, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+		{0.0f, -factor, 0.0f}, {0.0f, 1.0f, 0.0f},
+		{0.0f, factor, 0.0f}, {0.0f, 1.0f, 0.0f},
+		{0.0f, 0.0f, -factor}, {0.0f, 0.0f, 1.0f},
+		{0.0f, 0.0f, factor}, {0.0f, 0.0f, 1.0f},
+	};
+	glBufferData(GL_ARRAY_BUFFER, sizeof(axis), axis, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &quadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	graphics::Vertex vertices[] = {
+		{{-1.0f, -1.0f, 0.0f},		{0.0f, 0.0f},		{0.0f, 0.0f, 1.0f}},  // bottom-left corner
+		{{ 1.0f, -1.0f, 0.0f},		{1.0f, 0.0f},		{0.0f, 0.0f, 1.0f}},  // bottom-right corner
+		{{ 1.0f,  1.0f, 0.0f},		{1.0f, 1.0f},		{0.0f, 0.0f, 1.0f}},  // top-right corner
+		{{-1.0f, -1.0f, 0.0f},		{0.0f, 0.0f},		{0.0f, 0.0f, 1.0f}},  // bottom-left corner
+		{{ 1.0f,  1.0f, 0.0f},		{1.0f, 1.0f},		{0.0f, 0.0f, 1.0f}},  // top-right corner 
+		{{-1.0f,  1.0f, 0.0f},		{0.0f, 1.0f},		{0.0f, 0.0f, 1.0f}}   // top-left corner
+	};
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	auto camera = object::Instantiate<GameObject>(enums::LayerType::Camera, glm::vec3(3.0f, 1.0f, 5.0f));
+	renderer::mainCamera = camera->AddComponent<Camera>();
+	camera->AddComponent<CameraScript>();
+
+	auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(2.0f, 0.0f, 0.0f));
+	auto lightTr = light->GetComponent<Transform>();
+	auto lightSp = light->AddComponent<SpriteRenderer>();
+	lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+	lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+	lightSp->SetObjectColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	lightSp->SetLightColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	lightSp->SetLightStrength(1.0f);
+
+	//spheres[reinterpret_cast<uintptr_t>(light)]
+	spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
+	spheres.emplace_back(Sphere{
+			lightTr->GetPosition()
+			, glm::length(lightTr->GetScale())
+			, lightSp->GetMaterial()
+		}
+	);
+
+	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
+	auto tr = mainObject->GetComponent<Transform>();
+	//tr->SetScale(glm::vec3(100.0f, 100.0f, 100.0f));
+	auto sp = mainObject->AddComponent<SpriteRenderer>();
+	sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+	sp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+
+	spheresIndex.emplace(reinterpret_cast<uintptr_t>(mainObject), std::make_pair(false, spheres.size()));
+	spheres.emplace_back(Sphere{
+			tr->GetPosition()
+			, glm::length(tr->GetScale())
+			, sp->GetMaterial()
+		}
+	);
+}
+
+void ys::PlanetaryScene::UpdateSSBO()
+{
+	size_t dataSize = spheres.size() * sizeof(Sphere);
+
+	if (dataSize > ssboSphereSize)
+	{
+		ssboSphereSize *= 2;
+
+		GLuint newSSBO;
+		glGenBuffers(1, &newSSBO);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, newSSBO);
+
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, ssboSphereSize, nullptr
+			, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+
+		spheresPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ssboSphereSize
+			, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+
+		glDeleteBuffers(1, &ssboSphere);
+
+		ssboSphere = newSSBO;
+	}
+
+	memcpy(spheresPointer, spheres.data(), dataSize);
 }

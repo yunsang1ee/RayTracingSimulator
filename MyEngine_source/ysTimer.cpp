@@ -47,38 +47,8 @@ namespace ys
 			curTime = 0;
 		}
 
-		/*if (InputManager::getKeyDown((BYTE)ys::Key::Num1) && InputManager::getKey(VK_CONTROL))
-		{
-			targetFPS = 10;
-		}
-		if (InputManager::getKeyDown((BYTE)ys::Key::Num2) && InputManager::getKey(VK_CONTROL))
-		{
-			targetFPS = 30;
-		}
-		if (InputManager::getKeyDown((BYTE)ys::Key::Num3) && InputManager::getKey(VK_CONTROL))
-		{
-			targetFPS = 60;
-		}
-		if (InputManager::getKeyDown((BYTE)ys::Key::Num4) && InputManager::getKey(VK_CONTROL))
-		{
-			targetFPS = 120;
-		}
-		if (InputManager::getKeyDown((BYTE)ys::Key::Num5) && InputManager::getKey(VK_CONTROL))
-		{
-			targetFPS = 240;
-		}
-		if (InputManager::getKeyDown((BYTE)ys::Key::Num6) && InputManager::getKey(VK_CONTROL))
-		{
-			targetFPS = 480;
-		}
-		if (InputManager::getKeyDown((BYTE)ys::Key::Num7) && InputManager::getKey(VK_CONTROL))
-		{
-			targetFPS = 960;
-		}
-		if (InputManager::getKeyDown((BYTE)ys::Key::Num0) && InputManager::getKey(VK_CONTROL))
-		{
-			targetFPS = 0;
-		}*/
+		if (InputManager::getKeyDown(GLFW_KEY_SCROLL_LOCK) && InputManager::getKey(VK_CONTROL))
+			targetFPS = (targetFPS == 0) ? 144 : 0;
 	}
 	void Timer::Render(HDC hDC, POINT screen)	
 	{

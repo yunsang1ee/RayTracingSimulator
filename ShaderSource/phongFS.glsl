@@ -7,10 +7,24 @@ struct VertexOut
 	vec3 normal;
 };
 
-struct Light
+//struct Light
+//{
+//	vec3 position;
+//	vec3 color;
+//};
+
+struct Material
 {
-	vec3 position;
-	vec3 color;
+    vec4 color;
+    vec4 emittedColor;
+    float emissionStrength;
+};
+
+struct Sphere
+{
+    vec3 center;
+    float radius;
+    Material material;
 };
 
 in VertexOut outData;
@@ -19,32 +33,37 @@ uniform bool isTexture;
 uniform sampler2D textureSampler;
 
 uniform vec3 viewPos;
-uniform Light lights[10];
-uniform int lightCount;
+//uniform Light lights[10];
+//uniform int lightCount;
 
-uniform vec4 objectColor;
+//uniform vec4 objectColor;
 
 out vec4 fragColor;
+
+layout(std430, binding = 0) buffer Spheres
+{
+    Sphere spheres[];
+};
 
 void main()
 {    
 	vec4 texColor;
 	if(isTexture) texColor = texture(textureSampler, outData.tex);
-	else if(objectColor != vec4(0.0f, 0.0f, 0.0f, 0.0f)) texColor = objectColor;
 	else texColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	vec3 result = texColor.rgb;
+	vec3 result = vec3(0.0f);
 				
-	for (int i = 0; i < lightCount; ++i)
+	for (int i = 0; i < spheres.length(); ++i)
 	{
-		vec3 lightPos = lights[i].position;
-		vec3 lightColor = normalize(lights[i].color);
+		if (spheres[i].material.emissionStrength <= 0.0) continue;
+		vec3 lightPos = spheres[i].center;
+		vec3 lightColor = normalize(spheres[i].material.emittedColor).xyz;
 
 		float dist = max(distance(lightPos, outData.position.xyz),1);
 
-		float ambientLight;
-		ambientLight = 0.0f;
-		vec3 ambient = ambientLight * texColor.rgb;
+		//float ambientLight;
+		//ambientLight = 0.0f;
+		//vec3 ambient = ambientLight * texColor.rgb;
 
 		vec3 norm = normalize(outData.normal);
 		vec3 lightDir = normalize(lightPos - outData.position.xyz);
@@ -57,13 +76,16 @@ void main()
 		float specularLight = pow(max(dot (viewDir, reflectDir), 0.0), shininess);
 		vec3 specular = specularLight * lightColor * 0.6f;
 
-		vec3 lightInfo = (ambient + diffuse + specular);
+		//vec3 lightInfo = (ambient + diffuse + specular);
+		vec3 lightInfo = (diffuse + specular);
 		lightInfo = mix(lightInfo, lightColor, 1 / (dist * dist));
-		if (i > 0) result = mix(result, lightInfo, 0.5);
-		else result += lightInfo;
+		//if (i > 0) result = mix(result, lightInfo, 0.5);
+		//else result += lightInfo;
+		result += lightInfo;
 	}
 
 	result = clamp(result, 0.0f, 1.0f);
 
 	fragColor = vec4(result, texColor.a);
+	if (spheres.length() == 0) fragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }
