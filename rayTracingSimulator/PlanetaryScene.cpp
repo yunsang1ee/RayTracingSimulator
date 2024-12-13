@@ -79,16 +79,9 @@ void ys::PlanetaryScene::Init()
 	sp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
 	SetUpFBO(iToolSize_X, iToolSize_Y);
 
-
-
-	// 모든 객체 넣기
-	
+	// 모든 객체 넣기	
 	AllObject.push_back(light);
 	AllObject.push_back(mainObject);
-
-
-
-
 }
 
 void ys::PlanetaryScene::Update()
@@ -184,6 +177,7 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 
 void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 {
+	if (index) return;
 	// 이건 일반 메인화면 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -275,35 +269,4 @@ void ys::PlanetaryScene::SetUpFBO(int iX, int iY)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-
-ys::GameObject* ys::PlanetaryScene::RaySphere(GameObject* Object,glm::vec3 Mouse_World_Pos,glm::mat4 viewMatrix,glm::vec3 viewPosition)
-{
-	Ray ray;
-	ray.origin = (inverse(viewMatrix) * glm::vec4(viewPosition, 1.0));
-	ray.dir = glm::normalize(Mouse_World_Pos - ray.origin);
-
-
-	glm::vec3 offsetRayOrigin = ray.origin - Object->GetComponent<Transform>()->GetPosition();
-
-	float sphereRadius = Object->GetComponent<Transform>()->GetScale().x;
-
-	float a = glm::dot(ray.dir, ray.dir);
-	float b = 2 * glm::dot(offsetRayOrigin, ray.dir);
-	float c = dot(offsetRayOrigin, offsetRayOrigin) - sphereRadius * sphereRadius;
-	float nabla = b * b - 4 * a * c;
-
-	if (nabla >= 0)
-	{
-		float dst = (-b - sqrt(nabla)) / (2 * a);
-
-
-		if (dst >= 0) // 닿았다면?
-		{
-			return Object;
-			//hitInfo.hitPoint = ray.origin + ray.dir * dst;
-		}
-	}
-	return nullptr;
 }
