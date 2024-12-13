@@ -61,7 +61,7 @@ void ys::SpriteRenderer::Render(HDC hDC)
 	unsigned int isAmbient = glGetUniformLocation(shader->GetShaderID(), "isAmbient");
 	unsigned int viewPos = glGetUniformLocation(shader->GetShaderID(), "viewPos");
 	//unsigned int lightCount = glGetUniformLocation(shader->GetShaderID(), "lightCount");
-	//unsigned int objectColor = glGetUniformLocation(shader->GetShaderID(), "objectColor");
+	unsigned int objectColor = glGetUniformLocation(shader->GetShaderID(), "objectColor");
 
 	glUniform1i(isTexture, GL_FALSE);
 	glUniform1i(isAmbient, this->isAmbient);
@@ -83,7 +83,7 @@ void ys::SpriteRenderer::Render(HDC hDC)
 	//	glUniform3fv(lightsColor, 1, glm::value_ptr(lightsInfo[i].color));
 	//}
 	//glUniform1i(lightCount, lightsInfo.size());
-	//glUniform4fv(objectColor, 1, glm::value_ptr(this->material.color));
+	glUniform4fv(objectColor, 1, glm::value_ptr(this->material.color));
 
 	//std::vector<GLfloat> values(10 * 6);
 	//for (int i = 0; i < lightsInfo.size(); ++i)

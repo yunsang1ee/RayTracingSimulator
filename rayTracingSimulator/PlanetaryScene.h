@@ -9,7 +9,7 @@ namespace ys
 		{
 			glm::vec3 center;
 			float radius;
-			Material material;
+			struct Material material;
 		};
 
 	public:

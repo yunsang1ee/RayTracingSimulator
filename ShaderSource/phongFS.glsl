@@ -15,17 +15,17 @@ struct VertexOut
 
 struct Material
 {
-    vec4 color;
-    vec4 emittedColor;
-    float emissionStrength;
-};
+    vec4 color;				// 16
+    vec4 emittedColor;		// 16
+    float emissionStrength;	// 4 + 12
+}; // 48
 
 struct Sphere
 {
-    vec3 center;
-    float radius;
-    Material material;
-};
+    vec3 center;		// 12 + 4
+    float radius;		// 4
+    Material material;	// 48
+}; //
 
 in VertexOut outData;
 
@@ -36,7 +36,7 @@ uniform vec3 viewPos;
 //uniform Light lights[10];
 //uniform int lightCount;
 
-//uniform vec4 objectColor;
+uniform vec4 objectColor;
 
 out vec4 fragColor;
 
@@ -49,43 +49,64 @@ void main()
 {    
 	vec4 texColor;
 	if(isTexture) texColor = texture(textureSampler, outData.tex);
-	else texColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	else if(objectColor != vec4(0.0f)) texColor = objectColor;
+	else texColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	vec3 result = vec3(0.0f);
-				
-	for (int i = 0; i < spheres.length(); ++i)
-	{
-		if (spheres[i].material.emissionStrength <= 0.0) continue;
-		vec3 lightPos = spheres[i].center;
-		vec3 lightColor = normalize(spheres[i].material.emittedColor).xyz;
 
-		float dist = max(distance(lightPos, outData.position.xyz),1);
+    for (int i = 0; i < spheres.length(); ++i)
+    {
+        if (spheres[i].material.emissionStrength <= 0.0) continue;
+        vec3 lightPos = spheres[i].center;
+        vec3 lightColor = spheres[i].material.emittedColor.xyz * spheres[i].material.emissionStrength;
 
-		//float ambientLight;
-		//ambientLight = 0.0f;
-		//vec3 ambient = ambientLight * texColor.rgb;
+        float dist = max(distance(lightPos, outData.position.xyz), 1.0);
 
-		vec3 norm = normalize(outData.normal);
-		vec3 lightDir = normalize(lightPos - outData.position.xyz);
-		float diffuseLight = max(dot(norm, lightDir), 0.0);
-		vec3 diffuse = diffuseLight * mix(texColor.rgb, lightColor, 0.4f);
+        if (dist == 1.0)
+        {
+            result += lightColor;
+            continue;
+        }
 
-		int shininess = 16;
-		vec3 viewDir = normalize(viewPos - outData.position.xyz);
-		vec3 reflectDir =  reflect(-lightDir, norm);
-		float specularLight = pow(max(dot (viewDir, reflectDir), 0.0), shininess);
-		vec3 specular = specularLight * lightColor * 0.6f;
+        vec3 norm = normalize(outData.normal);
+        vec3 lightDir = normalize(lightPos - outData.position.xyz);
+        vec3 viewDir = normalize(viewPos - outData.position.xyz);
+        vec3 reflectDir = reflect(-lightDir, norm);
 
-		//vec3 lightInfo = (ambient + diffuse + specular);
-		vec3 lightInfo = (diffuse + specular);
-		lightInfo = mix(lightInfo, lightColor, 1 / (dist * dist));
-		//if (i > 0) result = mix(result, lightInfo, 0.5);
-		//else result += lightInfo;
-		result += lightInfo;
-	}
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = diff * texColor.xyz * lightColor;
+
+        int shininess = 16;
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+        vec3 specular = spec * lightColor; 
+
+        vec3 lightEffect = (diffuse + specular);
+        result += lightEffect;
+    }
+//	for (int i = 0; i < spheres.length(); ++i)
+//	{
+//		if (spheres[i].material.emissionStrength <= 0.0) continue;
+//		vec3 lightPos = spheres[i].center;
+//		vec3 lightColor = spheres[i].material.emittedColor.xyz;
+//
+//		float dist = max(distance(lightPos, outData.position.xyz),1);
+//
+//		vec3 norm = normalize(outData.normal);
+//		vec3 lightDir = normalize(lightPos - outData.position.xyz);
+//		float diffuseLight = max(dot(norm, lightDir), 0.0);
+//		vec3 diffuse = diffuseLight * texColor.xyz;
+//
+//		int shininess = 16;
+//		vec3 viewDir = normalize(viewPos - outData.position.xyz);
+//		vec3 reflectDir =  reflect(-lightDir, norm);
+//		float specularLight = pow(max(dot (viewDir, reflectDir), 0.0), shininess);
+//		vec3 specular = specularLight * lightColor;
+//
+//		vec3 lightInfo = (diffuse + specular);
+//		result += lightInfo + lightColor / (dist * dist);
+//	}
 
 	result = clamp(result, 0.0f, 1.0f);
 
 	fragColor = vec4(result, texColor.a);
-	if (spheres.length() == 0) fragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }

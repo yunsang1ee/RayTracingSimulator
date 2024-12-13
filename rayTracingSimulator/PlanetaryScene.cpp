@@ -62,9 +62,9 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, phongTexture, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	Scene::Render(hDC, index);
+	Scene::Render(hDC, -1);
 
 	auto shader = ys::Resources::Find<graphics::Shader>(L"vc");
 	shader->Bind();
@@ -95,6 +95,7 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 
 void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 {
+	if (index != 0)return;
 	// SSBO Update
 	UpdateSSBO();
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
@@ -104,12 +105,14 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glViewport(0, 0, iImguiView_X, iImguiView_Y);
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Phong Render
 	PhongRender(hDC, index);
 
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 	auto shader = ys::Resources::Find<graphics::Shader>(L"test");
 	shader->Bind();
 	glBindVertexArray(VAO);
@@ -137,6 +140,20 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, normal));
 	glEnableVertexAttribArray(2);
+
+	std::vector<Sphere> readBackBuffer(spheres.size());
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, spheres.size() * sizeof(Sphere), readBackBuffer.data());
+	// 데이터가 올바르게 복사되었는지 검증
+	for (size_t i = 0; i < spheres.size(); ++i) {
+		if (memcmp(&spheres[i], &readBackBuffer[i], sizeof(Sphere)) != 0) {
+			std::cerr << "Data mismatch at index " << i << std::endl;
+		}
+		else {
+			std::cout << "Data match at index " << i << std::endl;
+		}
+	}
+
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	shader->Unbind();
@@ -221,23 +238,63 @@ void ys::PlanetaryScene::GenObject()
 	renderer::mainCamera = camera->AddComponent<Camera>();
 	camera->AddComponent<CameraScript>();
 
-	auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(2.0f, 0.0f, 0.0f));
-	auto lightTr = light->GetComponent<Transform>();
-	auto lightSp = light->AddComponent<SpriteRenderer>();
-	lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
-	lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
-	lightSp->SetObjectColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	lightSp->SetLightColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	lightSp->SetLightStrength(1.0f);
+	{
+		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, -2.0f));
+		auto lightTr = light->GetComponent<Transform>();
+		auto lightSp = light->AddComponent<SpriteRenderer>();
+		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+		lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		lightSp->SetLightColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		lightSp->SetLightStrength(0.5f);
 
-	//spheres[reinterpret_cast<uintptr_t>(light)]
-	spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
-	spheres.emplace_back(Sphere{
-			lightTr->GetPosition()
-			, glm::length(lightTr->GetScale())
-			, lightSp->GetMaterial()
-		}
-	);
+		auto scale = lightTr->GetScale();
+		//spheres[reinterpret_cast<uintptr_t>(light)]
+		spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
+		spheres.emplace_back(Sphere{
+				lightTr->GetPosition()
+				, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
+				, lightSp->GetMaterial()
+			}
+		);
+	}
+	{
+		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(-2.0f, 0.0f, 0.0f));
+		auto lightTr = light->GetComponent<Transform>();
+		auto lightSp = light->AddComponent<SpriteRenderer>();
+		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+		lightSp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+
+		auto scale = lightTr->GetScale();
+		//spheres[reinterpret_cast<uintptr_t>(light)]
+		spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
+		spheres.emplace_back(Sphere{
+				lightTr->GetPosition()
+				, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
+				, lightSp->GetMaterial()
+			}
+		);
+	}
+	{
+		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(2.0f, 0.0f, 0.0f));
+		auto lightTr = light->GetComponent<Transform>();
+		auto lightSp = light->AddComponent<SpriteRenderer>();
+		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+		lightSp->SetObjectColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+		auto scale = lightTr->GetScale();
+		//spheres[reinterpret_cast<uintptr_t>(light)]
+		spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
+		spheres.emplace_back(Sphere{
+				lightTr->GetPosition()
+				, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
+				, lightSp->GetMaterial()
+			}
+		);
+	}
+
 
 	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
 	auto tr = mainObject->GetComponent<Transform>();
@@ -245,12 +302,13 @@ void ys::PlanetaryScene::GenObject()
 	auto sp = mainObject->AddComponent<SpriteRenderer>();
 	sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
 	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
-	sp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	sp->SetObjectColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
+	auto scale = tr->GetScale();
 	spheresIndex.emplace(reinterpret_cast<uintptr_t>(mainObject), std::make_pair(false, spheres.size()));
 	spheres.emplace_back(Sphere{
 			tr->GetPosition()
-			, glm::length(tr->GetScale())
+			, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
 			, sp->GetMaterial()
 		}
 	);

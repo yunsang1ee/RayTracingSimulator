@@ -11,13 +11,14 @@ namespace ys
 		glm::vec4 color;
 		glm::vec4 emittedColor;
 		float emissionStrength;
+		float padding[3];
 
 		Material() = default;
 		Material(const glm::vec4& color, const glm::vec4& emittedColor, float emissionStrength)
-			: color(color), emittedColor(emittedColor), emissionStrength(emissionStrength)
+			: color(color), emittedColor(emittedColor), emissionStrength{emissionStrength}
 		{}
 		Material(const Material& other)
-			: color(other.color), emittedColor(other.emittedColor), emissionStrength(other.emissionStrength)
+			: color(other.color), emittedColor(other.emittedColor), emissionStrength{other.emissionStrength}
 		{}
 	};
 	class SpriteRenderer : public Component
@@ -45,7 +46,7 @@ namespace ys
 		void SetMesh(Mesh* mesh) { this->mesh = mesh;}
 		void SetObjectColor(const glm::vec4& color) { material.color = color;}
 		void SetLightColor(const glm::vec4& color) { material.emittedColor = color;}
-		void SetLightStrength(const float& strength) { material.emissionStrength = strength;}
+		void SetLightStrength(const float& strength) { material.emissionStrength = strength; }
 
 	private:
 		graphics::Texture* texture;
