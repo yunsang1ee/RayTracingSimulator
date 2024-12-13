@@ -4,6 +4,9 @@ uniform mat4 invProjectionMatrix;
 uniform mat4 invViewMatrix;
 uniform vec3 viewPosition;
 uniform vec2 viewportSize;
+uniform uint maxBounceCount;
+uniform uvec2 screenSize;
+uniform uint numRenderedFrame;
 
 out vec4 FragColor;
 
@@ -40,6 +43,35 @@ layout(std430, binding = 0) buffer Spheres // std430 -> float = 4byte, vec3 = 12
 {
 	Sphere spheres[];
 };
+
+float RandomValue(inout uint state)
+{
+	state = state * 747796405 + 2891336453;
+	uint result = ((state >> ((state >> 28) + 4)) ^ state) * 277803737;
+	result = (result >> 22) ^ result;
+	return result / 4294967295.0;
+}
+
+float RandomValueNormalDistribution(inout uint state) // Box-Muller transform
+{
+	float theta = 2 * 3.1415926 + RandomValue(state);
+	float rho = sqrt(-2 * log(RandomValue(state)));
+	return rho * cos(theta);
+}
+
+vec3 RandomDirection(inout uint state)
+{
+	float x = RandomValueNormalDistribution(state);
+	float y = RandomValueNormalDistribution(state);
+	float z = RandomValueNormalDistribution(state);
+	return normalize(vec3(x, y, z));
+}
+
+vec3 RandomHemisphereDirection(vec3 normal, inout uint rngState)
+{
+	vec3 dir = RandomDirection(rngState);
+	return dir * sign(dot(normal, dir));
+}
 
 HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius)
 {
@@ -83,9 +115,33 @@ HitInfo CalculateRayCollision(Ray ray)
 			closestHit.material = sphere.material;
 		}
 	}
-
-	if(!closestHit.isHit) discard;
 	return closestHit;
+}
+
+vec3 Trace(Ray ray, inout uint rngState)
+{
+	vec3 incomingLight = vec3(0.0f);
+	vec3 rayColor = vec3(1.0f);
+	
+//	HitInfo hitInfo = CalculateRayCollision(ray);
+//	if (hitInfo.isHit)
+//		incomingLight += hitInfo.material.color.xyz;
+	for (int i = 0; i <= maxBounceCount; ++i)
+	{
+		HitInfo hitInfo = CalculateRayCollision(ray);
+		if (hitInfo.isHit)
+		{
+			ray.origin = hitInfo.hitPoint;
+			ray.dir = RandomHemisphereDirection(hitInfo.normal, rngState);
+
+			Material material = hitInfo.material;
+			vec3 emittedLight = (material.emittedColor * material.emissionStrength).xyz;
+			incomingLight += emittedLight * rayColor;
+			rayColor *= material.color.xyz;
+		}
+	}
+
+	return incomingLight;
 }
 
 void main()
@@ -107,9 +163,14 @@ void main()
 	ray.origin = viewPosition;
 	ray.dir = normalize(worldSpace - ray.origin);
 
-	FragColor = vec4(normalize(worldSpace), 1.0f);
 	
 	// 구체 교차 검사
-	FragColor = CalculateRayCollision(ray).material.color;
-	//if (spheres.length() == 8) FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	uvec2 numPixel = screenSize;
+	uvec2 pixelCoord = uvec2(gl_FragCoord.xy);
+	uint pixelIndex = (pixelCoord.y * numPixel.x + pixelCoord.x);
+
+	uint rngState = pixelIndex + numRenderedFrame;
+
+	FragColor = vec4(Trace(ray, rngState), 1.0f);
+	//FragColor = vec4(vec3(RandomDirection(rngState)), 1.0f);
 }

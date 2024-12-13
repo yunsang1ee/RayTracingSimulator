@@ -49,12 +49,10 @@ namespace ys
 		size_t ssboSphereSize;
 		void* spheresPointer;
 
-		int iImguiView_X;
-		int iImguiView_Y;
+		glm::uvec2 screenSize;
 
-		int iToolSize_X;
-		int iToolSize_Y;
-
+		unsigned int maxBounceCount;
+		unsigned int frameCount;
 	};
 }
 

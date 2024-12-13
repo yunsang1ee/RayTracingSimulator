@@ -15,7 +15,8 @@ extern ys::Application app;
 
 ys::PlanetaryScene::PlanetaryScene()
 	: ssboSphereSize(sizeof(Sphere) * 10)
-	, iImguiView_X(1920), iImguiView_Y(1080), iToolSize_X(1920), iToolSize_Y(1080)
+	, screenSize(1920, 1080)
+	, maxBounceCount(500)
 {
 }
 
@@ -40,7 +41,7 @@ void ys::PlanetaryScene::Init()
 		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 
-	SetUpFBO(iToolSize_X, iToolSize_Y);
+	SetUpFBO(screenSize.x, screenSize.y);
 }
 
 void ys::PlanetaryScene::Update()
@@ -104,7 +105,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	// 이건 일반 메인화면 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glViewport(0, 0, iImguiView_X, iImguiView_Y);
+	glViewport(0, 0, screenSize.x, screenSize.y);
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -120,6 +121,9 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	unsigned int invViewMatrix = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix"); //--- 뷰잉 변환 설정
 	unsigned int viewPosition = glGetUniformLocation(shader->GetShaderID(), "viewPosition");
 	unsigned int viewportSize = glGetUniformLocation(shader->GetShaderID(), "viewportSize");
+	unsigned int maxBounceCount = glGetUniformLocation(shader->GetShaderID(), "maxBounceCount");
+	unsigned int screenSize = glGetUniformLocation(shader->GetShaderID(), "screenSize");
+	unsigned int numRenderedFrame = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
 
 	glUniformMatrix4fv(invProjectionMatrix, 1, GL_FALSE
 		, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
@@ -131,8 +135,13 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
 
 	glUniform2fv(viewportSize, 1
-		, glm::value_ptr(glm::vec2(iImguiView_X, iImguiView_Y)));
+		, glm::value_ptr(glm::vec2(this->screenSize)));
 
+	glUniform1ui(maxBounceCount, this->maxBounceCount);
+	glUniform2uiv(screenSize, 1
+		, glm::value_ptr(this->screenSize));
+	glUniform1ui(numRenderedFrame, this->frameCount);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, position));
 	glEnableVertexAttribArray(0);
@@ -166,6 +175,8 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO(phongTexture);
 	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO_Two(currentTexture);
 }
+
+
 
 void ys::PlanetaryScene::Destroy()
 {
@@ -246,7 +257,7 @@ void ys::PlanetaryScene::GenObject()
 		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 		lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		lightSp->SetLightColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		lightSp->SetLightStrength(0.5f);
+		lightSp->SetLightStrength(1.0f);
 
 		auto scale = lightTr->GetScale();
 		//spheres[reinterpret_cast<uintptr_t>(light)]
