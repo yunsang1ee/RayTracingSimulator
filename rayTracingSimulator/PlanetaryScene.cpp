@@ -13,6 +13,7 @@
 
 extern ys::Application app;
 
+
 ys::PlanetaryScene::PlanetaryScene()
 	: iImguiView_X(1920), iImguiView_Y(1080), iToolSize_X(1920), iToolSize_Y(1080)
 {
@@ -76,8 +77,18 @@ void ys::PlanetaryScene::Init()
 	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 	sp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	sp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
-
 	SetUpFBO(iToolSize_X, iToolSize_Y);
+
+
+
+	// 모든 객체 넣기
+	
+	AllObject.push_back(light);
+	AllObject.push_back(mainObject);
+
+
+
+
 }
 
 void ys::PlanetaryScene::Update()
@@ -86,15 +97,6 @@ void ys::PlanetaryScene::Update()
 
 	if (InputManager::getKeyDown(GLFW_KEY_ESCAPE))
 		glfwSetWindowShouldClose(app.getWindow(), GL_TRUE);
-
-	if (InputManager::getKey((WORD)Key::LEFT_BUTTON)) // 일단 마우스 누른것을 이동한다고 가정
-	{
-		iFrame = 0;
-	}
-	else
-	{
-		iFrame += 1;
-	}
 }
 
 void ys::PlanetaryScene::LateUpdate()
@@ -104,13 +106,15 @@ void ys::PlanetaryScene::LateUpdate()
 
 void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 {
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, phongTexture, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	Scene::Render(hDC, index);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	Scene::Render(hDC, -1);
 
 	auto shader = ys::Resources::Find<graphics::Shader>(L"vc");
 	shader->Bind();
@@ -119,11 +123,50 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	unsigned int viewLocation = glGetUniformLocation(shader->GetShaderID(), "viewTrans"); //--- 뷰잉 변환 설정
 	unsigned int transformLocation = glGetUniformLocation(shader->GetShaderID(), "worldTrans");
 
+	//Imgui_Manager::Get_Imgui_Manager()->SetObject_Matrix(mainObject->GetComponent<Transform>()->GetWorldMatrix()); //imgui에 객체의 월드행렬을 넘겨 줌
+	
+	
 	glm::mat4 projection = renderer::mainCamera->GetmainProjectionMatrix(); //--- 투영 공간 설정: fovy, aspect, near, far
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+	
 
 	glm::mat4 view = renderer::mainCamera->GetmainViewMatrix();
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+
+	//Imgui_Manager::Get_Imgui_Manager()->Test_Object(light);
+	
+	if (!Imgui_Manager::Get_Imgui_Manager()->isGizmoUsing())
+	{
+		float Closest_Dis = std::numeric_limits<float>::infinity();
+		int Choice_Index = -1;
+
+		float check_dis = 0.f;
+
+		for (int i = 0; i < AllObject.size(); ++i)
+		{
+			check_dis = Imgui_Manager::Get_Imgui_Manager()->Check_Object(AllObject[i]);
+
+			if (Closest_Dis > check_dis)
+			{
+				Closest_Dis = check_dis;
+				Choice_Index = i;
+			}
+
+		}
+
+		if (Choice_Index == -1)
+		{
+			Imgui_Manager::Get_Imgui_Manager()->SetObject(nullptr);
+		}
+		else
+		{
+			Imgui_Manager::Get_Imgui_Manager()->SetObject(AllObject[Choice_Index]);
+		}
+	}
+	
+
+	//Imgui_Manager::Get_Imgui_Manager()->SetObject(light);
+
 
 	glm::mat4 axisWorldTrans{ 1.0f };
 	glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(axisWorldTrans));
@@ -184,22 +227,12 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	shader->Unbind();
 
 	//prevTexture Update
-
-
-	// 원하는 텍스처를 바인딩 
-	glBindTexture(GL_TEXTURE_2D, phongTexture);
-	// 현재 바인딩된 프레임 버퍼의 내용을 targetTexture에 복사 
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, iImguiView_X, iImguiView_Y, 0);
-	// 텍스처 언바인딩 0이 언바인딩 한다는 뜻
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glBindTexture(GL_TEXTURE_2D, currentTexture);
-	// 현재 바인딩된 프레임 버퍼의 내용을 targetTexture에 복사 
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, iImguiView_X, iImguiView_Y, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glCopyImageSubData(currentTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
+		previousTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
+		1920, 1080, 1);
 
 	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO(phongTexture);
-	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO_Two(currentTexture,iFrame);
+	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO_Two(currentTexture);
 }
 
 void ys::PlanetaryScene::Destroy()
@@ -214,6 +247,7 @@ void ys::PlanetaryScene::OnEnter()
 void ys::PlanetaryScene::OnExit()
 {
 }
+
 
 void ys::PlanetaryScene::SetUpFBO(int iX, int iY)
 {
@@ -241,4 +275,35 @@ void ys::PlanetaryScene::SetUpFBO(int iX, int iY)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+
+ys::GameObject* ys::PlanetaryScene::RaySphere(GameObject* Object,glm::vec3 Mouse_World_Pos,glm::mat4 viewMatrix,glm::vec3 viewPosition)
+{
+	Ray ray;
+	ray.origin = (inverse(viewMatrix) * glm::vec4(viewPosition, 1.0));
+	ray.dir = glm::normalize(Mouse_World_Pos - ray.origin);
+
+
+	glm::vec3 offsetRayOrigin = ray.origin - Object->GetComponent<Transform>()->GetPosition();
+
+	float sphereRadius = Object->GetComponent<Transform>()->GetScale().x;
+
+	float a = glm::dot(ray.dir, ray.dir);
+	float b = 2 * glm::dot(offsetRayOrigin, ray.dir);
+	float c = dot(offsetRayOrigin, offsetRayOrigin) - sphereRadius * sphereRadius;
+	float nabla = b * b - 4 * a * c;
+
+	if (nabla >= 0)
+	{
+		float dst = (-b - sqrt(nabla)) / (2 * a);
+
+
+		if (dst >= 0) // 닿았다면?
+		{
+			return Object;
+			//hitInfo.hitPoint = ray.origin + ray.dir * dst;
+		}
+	}
+	return nullptr;
 }

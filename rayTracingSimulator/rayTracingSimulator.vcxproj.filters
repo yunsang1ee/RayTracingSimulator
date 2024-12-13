@@ -16,6 +16,9 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{1c6c6090-e38e-4c2c-a278-95e9ea9e1f66}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Imguizmo">
+      <UniqueIdentifier>{541e4c46-84c6-4445-a0f4-4af9567af645}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -48,6 +51,21 @@
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\gizmo\GraphEditor.cpp">
+      <Filter>Imguizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\gizmo\ImCurveEdit.cpp">
+      <Filter>Imguizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\gizmo\ImGradient.cpp">
+      <Filter>Imguizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\gizmo\ImGuizmo.cpp">
+      <Filter>Imguizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\gizmo\ImSequencer.cpp">
+      <Filter>Imguizmo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraScript.h">
@@ -58,6 +76,24 @@
     </ClInclude>
     <ClInclude Include="ResourceLoad.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gizmo\GraphEditor.h">
+      <Filter>Imguizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gizmo\ImCurveEdit.h">
+      <Filter>Imguizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gizmo\ImGradient.h">
+      <Filter>Imguizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gizmo\ImGuizmo.h">
+      <Filter>Imguizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gizmo\ImSequencer.h">
+      <Filter>Imguizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gizmo\ImZoomSlider.h">
+      <Filter>Imguizmo</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 #pragma once
 #include "CommonInclude.h"
 
+
 namespace ys
 {
 	class Imgui_Manager
@@ -11,6 +12,13 @@ namespace ys
 
 
 	public:
+
+		struct Ray
+		{
+			glm::vec3 origin;
+			glm::vec3 dir;
+		};
+
 		static Imgui_Manager* Get_Imgui_Manager()
 		{
 			if (imgui_Manager == nullptr)
@@ -46,7 +54,25 @@ namespace ys
 
 		static void SetFBO(GLuint fboTexture);
 
-		static void SetFBO_Two(GLuint fboTexture,int iFrame);
+		static void SetFBO_Two(GLuint fboTexture);
+
+		static void SetObject(ys::GameObject* Game_Object);
+
+		static float Check_Object(ys::GameObject* Game_Object);
+
+
+
+		static void Test_Object(ys::GameObject* Game_Object);
+
+
+
+		static float RaySphere(Ray ray, glm::vec3 sphereCenter, float sphereRadius);
+
+		static bool isGizmoUsing();
+
+
+	private:
+		static void Change_Transform_Object();
 
 
 	private: // 나중에 여기에 변수 추가
@@ -57,8 +83,21 @@ namespace ys
 		static GLuint raytracingTexture;
 		static GLuint resizeTexture;
 
-		static int iSubView_X;
-		static int iSubView_Y;
+
+		// Gizmo type
+
+		static int iGizmo_type;
+
+		//static void* Camera;
+		static int iPhongView_X;
+		static int iPhongView_Y;
+
+		static ys::GameObject* Main_Camera; // 카메라 행렬
+
+		static ys::GameObject* Object_Pointer; // 선택한 객체 행렬
+
+		static glm::vec3 CameraPos; // 현재 카메라 위치
+
 
 	};
 }

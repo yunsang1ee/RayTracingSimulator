@@ -40,8 +40,6 @@ namespace ys
 		GLuint axisVBO{};
 		GLuint quadVBO{};
 
-		GameObject* mainObject{};
-
 
 	private:
 		GLuint currentTexture{}, previousTexture{}; //raytarcing(compute shader) not use framebuffer
@@ -58,7 +56,11 @@ namespace ys
 		int iToolSize_X;
 		int iToolSize_Y;
 
-		int iFrame = 0; // 현재 멈춘상태로 몇 프레임 돌았는지?
+
+	private:
+		std::vector<GameObject*> AllObject{};
+
+		int frameCount = 0; // 현재 멈춘상태로 몇 프레임 돌았는지?
 
 	};
 }
