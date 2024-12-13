@@ -12,6 +12,13 @@ namespace ys
 
 
 	public:
+
+		struct Ray
+		{
+			glm::vec3 origin;
+			glm::vec3 dir;
+		};
+
 		static Imgui_Manager* Get_Imgui_Manager()
 		{
 			if (imgui_Manager == nullptr)
@@ -49,9 +56,19 @@ namespace ys
 
 		static void SetFBO_Two(GLuint fboTexture);
 
-		static void SetCamera_Matrix(glm::mat4 _mat);
-		static void SetProjection_Matrix(glm::mat4 _mat);
 		static void SetObject(ys::GameObject* Game_Object);
+
+		static float Check_Object(ys::GameObject* Game_Object);
+
+
+
+		static void Test_Object(ys::GameObject* Game_Object);
+
+
+
+		static float RaySphere(Ray ray, glm::vec3 sphereCenter, float sphereRadius);
+
+		static bool isGizmoUsing();
 
 
 	private:
@@ -72,12 +89,14 @@ namespace ys
 		static int iGizmo_type;
 
 		//static void* Camera;
-		static int iSubView_X;
-		static int iSubView_Y;
+		static int iPhongView_X;
+		static int iPhongView_Y;
 
-		static glm::mat4 CameraMatrix; // 카메라 행렬
-		static glm::mat4 Projection; // 투영 행렬
+		static ys::GameObject* Main_Camera; // 카메라 행렬
+
 		static ys::GameObject* Object_Pointer; // 선택한 객체 행렬
+
+		static glm::vec3 CameraPos; // 현재 카메라 위치
 
 
 	};

@@ -13,6 +13,7 @@
 
 extern ys::Application app;
 
+
 ys::PlanetaryScene::PlanetaryScene()
 	: iImguiView_X(1920), iImguiView_Y(1080), iToolSize_X(1920), iToolSize_Y(1080)
 {
@@ -68,7 +69,7 @@ void ys::PlanetaryScene::Init()
 	lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	lightSp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
 
-	mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
+	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
 	auto tr = mainObject->GetComponent<Transform>();
 	//tr->SetScale(glm::vec3(100.0f, 100.0f, 100.0f));
 	auto sp = mainObject->AddComponent<SpriteRenderer>();
@@ -77,6 +78,17 @@ void ys::PlanetaryScene::Init()
 	sp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	sp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
 	SetUpFBO(iToolSize_X, iToolSize_Y);
+
+
+
+	// 모든 객체 넣기
+	
+	AllObject.push_back(light);
+	AllObject.push_back(mainObject);
+
+
+
+
 }
 
 void ys::PlanetaryScene::Update()
@@ -112,15 +124,49 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	unsigned int transformLocation = glGetUniformLocation(shader->GetShaderID(), "worldTrans");
 
 	//Imgui_Manager::Get_Imgui_Manager()->SetObject_Matrix(mainObject->GetComponent<Transform>()->GetWorldMatrix()); //imgui에 객체의 월드행렬을 넘겨 줌
-	Imgui_Manager::Get_Imgui_Manager()->SetObject(mainObject); //imgui에 객체의 월드행렬을 넘겨 줌
+	
 	
 	glm::mat4 projection = renderer::mainCamera->GetmainProjectionMatrix(); //--- 투영 공간 설정: fovy, aspect, near, far
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
-	Imgui_Manager::Get_Imgui_Manager()->SetProjection_Matrix(projection); // imgui에 투영행렬 넘겨 줌
+	
 
 	glm::mat4 view = renderer::mainCamera->GetmainViewMatrix();
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
-	Imgui_Manager::Get_Imgui_Manager()->SetCamera_Matrix(view); // imgui에 카메라 행렬 넘겨 줌
+
+	//Imgui_Manager::Get_Imgui_Manager()->Test_Object(light);
+	
+	if (!Imgui_Manager::Get_Imgui_Manager()->isGizmoUsing())
+	{
+		float Closest_Dis = std::numeric_limits<float>::infinity();
+		int Choice_Index = -1;
+
+		float check_dis = 0.f;
+
+		for (int i = 0; i < AllObject.size(); ++i)
+		{
+			check_dis = Imgui_Manager::Get_Imgui_Manager()->Check_Object(AllObject[i]);
+
+			if (Closest_Dis > check_dis)
+			{
+				Closest_Dis = check_dis;
+				Choice_Index = i;
+			}
+
+		}
+
+		if (Choice_Index == -1)
+		{
+			Imgui_Manager::Get_Imgui_Manager()->SetObject(nullptr);
+		}
+		else
+		{
+			Imgui_Manager::Get_Imgui_Manager()->SetObject(AllObject[Choice_Index]);
+		}
+	}
+	
+
+	//Imgui_Manager::Get_Imgui_Manager()->SetObject(light);
+
 
 	glm::mat4 axisWorldTrans{ 1.0f };
 	glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(axisWorldTrans));
@@ -202,6 +248,7 @@ void ys::PlanetaryScene::OnExit()
 {
 }
 
+
 void ys::PlanetaryScene::SetUpFBO(int iX, int iY)
 {
 	glGenFramebuffers(1, &phongFramebuffer);
@@ -228,4 +275,35 @@ void ys::PlanetaryScene::SetUpFBO(int iX, int iY)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+
+ys::GameObject* ys::PlanetaryScene::RaySphere(GameObject* Object,glm::vec3 Mouse_World_Pos,glm::mat4 viewMatrix,glm::vec3 viewPosition)
+{
+	Ray ray;
+	ray.origin = (inverse(viewMatrix) * glm::vec4(viewPosition, 1.0));
+	ray.dir = glm::normalize(Mouse_World_Pos - ray.origin);
+
+
+	glm::vec3 offsetRayOrigin = ray.origin - Object->GetComponent<Transform>()->GetPosition();
+
+	float sphereRadius = Object->GetComponent<Transform>()->GetScale().x;
+
+	float a = glm::dot(ray.dir, ray.dir);
+	float b = 2 * glm::dot(offsetRayOrigin, ray.dir);
+	float c = dot(offsetRayOrigin, offsetRayOrigin) - sphereRadius * sphereRadius;
+	float nabla = b * b - 4 * a * c;
+
+	if (nabla >= 0)
+	{
+		float dst = (-b - sqrt(nabla)) / (2 * a);
+
+
+		if (dst >= 0) // 닿았다면?
+		{
+			return Object;
+			//hitInfo.hitPoint = ray.origin + ray.dir * dst;
+		}
+	}
+	return nullptr;
 }

@@ -12,6 +12,12 @@ namespace ys
 			glm::vec4 emissionStrength;
 		};
 
+		struct Ray
+		{
+			glm::vec3 origin;
+			glm::vec3 dir;
+		};
+
 		struct Sphere
 		{
 			glm::vec3 center;
@@ -34,13 +40,13 @@ namespace ys
 		void PhongRender(HDC hDC, const int& index);
 		void SetUpFBO(int iX, int iY);
 
+		ys::GameObject* RaySphere(GameObject* Object, glm::vec3 Mouse_World_Pos, glm::mat4 viewMatrix, glm::vec3 viewPosition);
+
 	private:
 		GLuint VAO{};
 
 		GLuint axisVBO{};
 		GLuint quadVBO{};
-
-		GameObject* mainObject{};
 
 
 	private:
@@ -57,6 +63,11 @@ namespace ys
 
 		int iToolSize_X;
 		int iToolSize_Y;
+
+
+	private:
+		std::vector<GameObject*> AllObject{};
+
 
 	};
 }

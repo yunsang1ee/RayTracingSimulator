@@ -11,6 +11,10 @@
 #include "ysGameObject.h"
 #include "ysTransform.h"
 #include "ysInputManager.h"
+#include "ysRenderer.h"
+#include "ysObject.h"
+#include "ysSpriteRenderer.h"
+#include "ysResources.h"
 
 
 ys::Imgui_Manager* ys::Imgui_Manager::imgui_Manager = nullptr;
@@ -22,14 +26,23 @@ GLuint ys::Imgui_Manager::raytracingTexture = 0;
 GLuint ys::Imgui_Manager::resizeTexture = 0;
 
 
+glm::vec3 ys::Imgui_Manager::CameraPos = glm::vec3(0,0,0);
+
+int ys::Imgui_Manager::iPhongView_X = 640 * 2;
+int ys::Imgui_Manager::iPhongView_Y = 360 * 2;
+
+
 int ys::Imgui_Manager::iGizmo_type = ImGuizmo::OPERATION::TRANSLATE;
 
-
-
-glm::mat4 ys::Imgui_Manager::CameraMatrix = glm::mat4(1.0);
-glm::mat4 ys::Imgui_Manager::Projection = glm::mat4(1.0);
 ys::GameObject* ys::Imgui_Manager::Object_Pointer = nullptr;
 
+
+
+struct Ray
+{
+	glm::vec3 origin;
+	glm::vec3 dir;
+};
 
 
 ys::Imgui_Manager::Imgui_Manager()
@@ -97,7 +110,7 @@ void ys::Imgui_Manager::Render()
 
 	ImGui::Begin("Phong", nullptr, window_flags);
 
-	ImGui::Image(phongTexture, ImVec2(640 * 2, 360 * 2), ImVec2(0, 1), ImVec2(1, 0));
+	ImGui::Image(phongTexture, ImVec2(iPhongView_X, iPhongView_Y), ImVec2(0, 1), ImVec2(1, 0));
 
 	Change_Transform_Object();
 
@@ -161,21 +174,115 @@ void ys::Imgui_Manager::SetFBO_Two(GLuint fboTexture)
 	raytracingTexture = fboTexture;
 }
 
-void ys::Imgui_Manager::SetCamera_Matrix(glm::mat4 _mat)
-{
-	CameraMatrix = _mat;
-
-}
-
-void ys::Imgui_Manager::SetProjection_Matrix(glm::mat4 _mat)
-{
-	Projection = _mat;
-
-}
 
 void ys::Imgui_Manager::SetObject(ys::GameObject* Game_Object)
 {
 	Object_Pointer = Game_Object;
+}
+
+float ys::Imgui_Manager::RaySphere(Ray ray, glm::vec3 sphereCenter, float sphereRadius)
+{
+	glm::vec3 offsetRayOrigin = ray.origin - sphereCenter;
+
+	float a = glm::dot(ray.dir, ray.dir);
+	float b = 2.0f * glm::dot(offsetRayOrigin, ray.dir);
+	float c = glm::dot(offsetRayOrigin, offsetRayOrigin) - sphereRadius * sphereRadius;
+	float discriminant = b * b - 4.0f * a * c;
+
+	// 판별식이 0 이상인 경우 충돌이 발생할 가능성 있음
+	if (discriminant >= 0) {
+		// 근의 공식으로 근 계산
+		float sqrtDiscriminant = sqrt(discriminant);
+		float t1 = (-b - sqrtDiscriminant) / (2.0f * a);
+
+		// t1과 t2 중 하나라도 양수이면 교차하는 것입니다
+		if (t1 >= 0) {
+
+			float dst = (-b - sqrt(sqrtDiscriminant)) / (2 * a);
+
+			return dst;
+		}
+	}
+
+	// 충돌이 없으면 false 반환
+	return std::numeric_limits<float>::infinity();
+}
+
+
+
+float ys::Imgui_Manager::Check_Object(ys::GameObject* Game_Object)
+{
+
+	// 이 함수는 마우스를 눌렀을 때만 들어와야 함
+
+	// 마우스 위치 받아오기
+	ImGuiIO& io = ImGui::GetIO(); 
+	glm::vec2 mousePos = glm::vec2(io.MousePos.x * 1920 /iPhongView_X, io.MousePos.y * 1080 / iPhongView_Y); // 마우스 위치를 1920,1080으로 변환
+
+	//mousePos = glm::vec2(1000, 200);
+
+	// 화면 좌표를 클립 공간으로 변환
+  // 화면 좌표를 클립 공간으로 변환
+	glm::vec4 clipSpace = glm::vec4((mousePos / glm::vec2(1920, 1080) * 2.0f - 1.0f), 1.0f, 1.0f); // ?
+	clipSpace.y *= -1;
+
+	// 클립 공간을 뷰 공간으로 변환
+	glm::vec4 viewSpace = inverse(renderer::mainCamera->GetmainProjectionMatrix()) * clipSpace;
+	viewSpace.w = 1.0f;
+	viewSpace /= viewSpace.w;
+
+	//viewSpace = glm::vec4(viewSpace.xy, -1.0f, 0.0f);
+
+	// 뷰 공간을 월드 공간으로 변환
+	glm::vec3 worldSpace = (inverse(renderer::mainCamera->GetmainViewMatrix()) * viewSpace);
+
+	Ray ray;
+	ray.origin = (glm::vec4(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition(), 1.f));
+	ray.dir = normalize(worldSpace - ray.origin);
+
+	//auto light = object::Instantiate<GameObject>(enums::LayerType::Object, ray.origin);
+	//auto lightSp = light->AddComponent<SpriteRenderer>();
+	//lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+	//lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+	//lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	//lightSp->AddLight(light, glm::vec3(1.0f, 1.0f, 1.0f));
+	//
+	//
+	//light = object::Instantiate<GameObject>(enums::LayerType::Object, ray.origin + ray.dir * 8.f);
+	//lightSp = light->AddComponent<SpriteRenderer>();
+	//lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+	//lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+	//lightSp->SetObjectColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	//lightSp->AddLight(light, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	//FragColor = glm::vec4(normalize(worldSpace), 1.0f);
+
+	// 구체 설정
+	//glm::vec4 transformed = (glm::vec4(2.0f, 0.0f, 0.0f, 1.0f));
+	float sphereRadius1 = Game_Object->GetComponent<Transform>()->GetScale().x;
+
+	// 구체 교차 검사
+
+	return RaySphere(ray, glm::vec3(Game_Object->GetComponent<Transform>()->GetPosition()), sphereRadius1);
+}
+
+void ys::Imgui_Manager::Test_Object(ys::GameObject* Game_Object)
+{
+	Object_Pointer = Game_Object;
+
+}
+
+
+
+bool ys::Imgui_Manager::isGizmoUsing()
+{
+	if (ImGuizmo::IsUsing() || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	{
+		return true;
+	}
+
+	return false;
+
 }
 
 void ys::Imgui_Manager::Change_Transform_Object()
@@ -213,7 +320,7 @@ void ys::Imgui_Manager::Change_Transform_Object()
 
 		glm::mat4 Object_Matrix = Object_Pointer->GetComponent<Transform>()->GetWorldMatrix();
 
-		ImGuizmo::Manipulate(glm::value_ptr(CameraMatrix), glm::value_ptr(Projection),
+		ImGuizmo::Manipulate(glm::value_ptr(renderer::mainCamera->GetmainViewMatrix()), glm::value_ptr(renderer::mainCamera->GetmainProjectionMatrix()),
 			(ImGuizmo::OPERATION)iGizmo_type, ImGuizmo::LOCAL, glm::value_ptr(Object_Matrix));
 
 		if (ImGuizmo::IsUsing())
