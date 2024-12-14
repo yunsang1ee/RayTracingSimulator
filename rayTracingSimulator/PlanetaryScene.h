@@ -50,8 +50,6 @@ namespace ys
 
 		glm::uvec2 screenSize;
 
-		unsigned int maxBounceCount;
-		unsigned int rayPerPixel;
 		unsigned int frameCount;
 	};
 }

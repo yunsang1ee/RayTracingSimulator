@@ -17,8 +17,6 @@ extern ys::Application app;
 ys::PlanetaryScene::PlanetaryScene()
 	: ssboSphereSize(sizeof(Sphere) * 10)
 	, screenSize(1920, 1080)
-	, maxBounceCount(30)
-	, rayPerPixel(1)
 {
 }
 
@@ -49,12 +47,6 @@ void ys::PlanetaryScene::Init()
 void ys::PlanetaryScene::Update()
 {
 	Scene::Update();
-
-	if (InputManager::getKeyDown('b')) maxBounceCount++;
-	if (InputManager::getKeyDown('B') && maxBounceCount > 0) maxBounceCount--;
-
-	if (InputManager::getKeyDown('n')) rayPerPixel++;
-	if (InputManager::getKeyDown('N') && rayPerPixel > 0) rayPerPixel--;
 
 	if (InputManager::getKeyDown(GLFW_KEY_ESCAPE))
 		glfwSetWindowShouldClose(app.getWindow(), GL_TRUE);
@@ -88,8 +80,6 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 
 	glm::mat4 view = renderer::mainCamera->GetmainViewMatrix();
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
-
-	//Imgui_Manager::Get_Imgui_Manager()->Test_Object(light);
 	
 	if (!Imgui_Manager::Get_Imgui_Manager()->isGizmoUsing())
 	{
@@ -129,8 +119,6 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 		}
 	}
 	
-
-	//Imgui_Manager::Get_Imgui_Manager()->SetObject(light);
 
 
 	glm::mat4 axisWorldTrans{ 1.0f };
@@ -191,11 +179,11 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glUniform2fv(viewportSize, 1
 		, glm::value_ptr(glm::vec2(this->screenSize)));
 
-	glUniform1ui(maxBounceCount, this->maxBounceCount);
+	glUniform1ui(maxBounceCount, Imgui_Manager::Get_Imgui_Manager()->Get_MaxBounceCount());
 	glUniform2uiv(screenSize, 1
 		, glm::value_ptr(this->screenSize));
 	glUniform1ui(numRenderedFrame, this->frameCount);
-	glUniform1ui(rayPerPixel, this->rayPerPixel);
+	glUniform1ui(rayPerPixel, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
 	
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, position));
@@ -302,7 +290,7 @@ void ys::PlanetaryScene::GenObject()
 		lightSp->SetLightStrength(1.0f);
 
 		auto scale = lightTr->GetScale();
-		//spheres[reinterpret_cast<uintptr_t>(light)]
+
 		spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
 		spheres.emplace_back(Sphere{
 				lightTr->GetPosition()
@@ -320,7 +308,7 @@ void ys::PlanetaryScene::GenObject()
 		lightSp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
 		auto scale = lightTr->GetScale();
-		//spheres[reinterpret_cast<uintptr_t>(light)]
+
 		spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
 		spheres.emplace_back(Sphere{
 				lightTr->GetPosition()
@@ -338,7 +326,7 @@ void ys::PlanetaryScene::GenObject()
 		lightSp->SetObjectColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
 		auto scale = lightTr->GetScale();
-		//spheres[reinterpret_cast<uintptr_t>(light)]
+
 		spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
 		spheres.emplace_back(Sphere{
 				lightTr->GetPosition()

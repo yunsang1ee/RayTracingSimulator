@@ -42,6 +42,7 @@ namespace ys
 
 	public:
 		static void Init(GLFWwindow* window); // 초기화
+
 		static void PostInit(); // 초기화
 
 		static void Update(); // 실질적인 부분
@@ -59,6 +60,17 @@ namespace ys
 		static void SetObject(ys::GameObject* Game_Object);
 
 		static float Check_Object(ys::GameObject* Game_Object);
+
+
+
+		// 레이 퍼 픽셀
+		static UINT Get_RayPerPixel() { return rayPerPixel; }
+		static UINT Get_MaxBounceCount() { return maxBounceCount; }
+
+		// fov
+		static float Get_Fov() { return glm::radians(fov); }
+
+
 
 
 
@@ -99,6 +111,18 @@ namespace ys
 		static ys::GameObject* Object_Pointer; // 선택한 객체 행렬
 
 		static glm::vec3 CameraPos; // 현재 카메라 위치
+
+
+		static bool Drop_Object; // 현재 피킹할 오브젝트를 바꿀 준비가 되었는지?
+
+
+		// 픽셀당 레이 수
+		static UINT rayPerPixel;
+		static UINT maxBounceCount;
+
+		// fov
+
+		static float fov;
 
 
 	};

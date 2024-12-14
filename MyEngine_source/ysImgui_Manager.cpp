@@ -27,6 +27,15 @@ GLuint ys::Imgui_Manager::raytracingTexture = 0;
 GLuint ys::Imgui_Manager::resizeTexture = 0;
 
 
+bool ys::Imgui_Manager::Drop_Object = false;
+
+
+UINT ys::Imgui_Manager::rayPerPixel = 1;
+UINT ys::Imgui_Manager::maxBounceCount = 1;
+
+float ys::Imgui_Manager::fov = glm::pi<float>() / 3.0f;
+
+
 glm::vec3 ys::Imgui_Manager::CameraPos = glm::vec3(0,0,0);
 
 int ys::Imgui_Manager::iPhongView_X = 640;
@@ -133,7 +142,81 @@ void ys::Imgui_Manager::Render()
 	ImGuiWindowFlags tool_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 	ImGui::Begin("Object", nullptr, tool_flags);
 
+	int Ray_Per_Pixel = rayPerPixel;
+	//ImGui::Text("");
+	ImGui::Text("Ray Per Pixel");
+	ImGui::SliderInt("Ray Per Pixel", &Ray_Per_Pixel, 1, 100, "Value = %d"); // 현재 변수 값 출력
+	rayPerPixel = Ray_Per_Pixel;
+	ImGui::Text("Ray Per Pixel: %d", rayPerPixel);
 
+
+	int MaxBounceCount = maxBounceCount;
+	ImGui::Text("");
+	ImGui::Text("Max Bounce Count");
+	ImGui::SliderInt("Max Bounce Count", &MaxBounceCount, 1, 100, "Value = %d"); // 현재 변수 값 출력
+	maxBounceCount = MaxBounceCount;
+	ImGui::Text("Max Bounce Count: %d", maxBounceCount);
+
+	ImGui::Text("");
+	ImGui::Text("Fov");
+	ImGui::SliderFloat("Fov", &fov, 10, 90, "Value = %.3f"); // 현재 변수 값 출력
+	ImGui::Text("Fov: %.3f", fov);
+
+
+	if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows))
+	{
+		Drop_Object = false;
+	}
+	else
+	{
+		Drop_Object = true;
+	}
+
+	if (Object_Pointer != nullptr)
+	{
+		// 색상 변수 선언
+		glm::vec4 color1 = { Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().color}; // 빨강 
+		// 색상 편집기 추가 
+		float Color[3] = { color1.x,color1.y,color1.z };
+
+		ImGui::Text("");
+		ImGui::Text("Picking_Object_Color");
+		ImGui::ColorEdit3("Picking_Object_Color", Color);
+		// 색상 버튼 추가 (색상 미리보기) 
+		Object_Pointer->GetComponent<SpriteRenderer>()->SetObjectColor(glm::vec4(Color[0], Color[1], Color[2], color1.w));
+
+		ImGui::ColorButton("Object_Color", ImVec4(color1.x, color1.y, color1.z,1.0));
+
+
+
+		float emissionstrength = Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().emissionStrength;
+		ImGui::Text("");
+		ImGui::Text("emissionStrength");
+		ImGui::SliderFloat("emissionStrength", &emissionstrength, 0.f, 10.f, "Value = %.3f"); // 현재 변수 값 출력
+		Object_Pointer->GetComponent<SpriteRenderer>()->SetLightStrength(emissionstrength);
+		ImGui::Text("emissionStrength: %.3f", emissionstrength);
+
+
+
+		// 색상 변수 선언
+		glm::vec4 EmittedColor = { Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().emittedColor }; // 빨강 
+		// 색상 편집기 추가 
+		float Emitted_Color[3] = { EmittedColor.x,EmittedColor.y,EmittedColor.z };
+		ImGui::Text("");
+		ImGui::Text("EmittedColor");
+		ImGui::ColorEdit3("EmittedColor", Emitted_Color);
+		// 색상 버튼 추가 (색상 미리보기) 
+		Object_Pointer->GetComponent<SpriteRenderer>()->SetLightColor(glm::vec4(Emitted_Color[0], Emitted_Color[1], Emitted_Color[2], EmittedColor.w));
+
+		ImGui::ColorButton("EmittedColor", ImVec4(EmittedColor.x, EmittedColor.y, EmittedColor.z, 1.0));
+
+	}
+	else
+	{
+		//static float color1[3] = { 0.0f, 0.0f, 0.0f }; // 검정
+		//ImGui::ColorEdit3("Picking_Object_Color", color1);
+		//ImGui::ColorButton("Object_Color", ImVec4(color1[0], color1[1], color1[2], 1.0f));
+	}
 
 	ImGui::End();
 
@@ -258,7 +341,7 @@ void ys::Imgui_Manager::Test_Object(ys::GameObject* Game_Object)
 
 bool ys::Imgui_Manager::isGizmoUsing()
 {
-	if (ImGuizmo::IsUsing() || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	if ((ImGuizmo::IsUsing() || !ImGui::IsMouseClicked(ImGuiMouseButton_Left)) || !Drop_Object)
 	{
 		return true;
 	}

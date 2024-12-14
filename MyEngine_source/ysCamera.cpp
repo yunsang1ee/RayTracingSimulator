@@ -3,6 +3,7 @@
 #include "YSapplication.h"
 #include "ysInputManager.h"
 #include "ysTimer.h"
+#include "ysImgui_Manager.h"
 #undef max
 #undef min
 
@@ -58,7 +59,7 @@ namespace ys
 		switch (type)
 		{
 		case ProjectionType::Perspective:
-			projectionMatrix = glm::perspective(glm::pi<float>() / 3.0f, aspectRatio, nearZ, farZ);
+			projectionMatrix = glm::perspective(Imgui_Manager::Get_Imgui_Manager()->Get_Fov(), aspectRatio, nearZ, farZ);
 			break;
 		case ProjectionType::Orthographic:
 			auto width = app.getScreenf().x / size;
