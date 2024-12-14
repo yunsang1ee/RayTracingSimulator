@@ -11,6 +11,7 @@
 #include <iostream>
 #include <ysInputManager.h>
 
+
 extern ys::Application app;
 
 
@@ -41,6 +42,9 @@ void ys::PlanetaryScene::Init()
 		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 
+	// sky_box_texture
+	//Imgui_Manager::Get_Imgui_Manager()->Push_Sky_Box_Texture(Resources::Find<graphics::Texture>(L"Skybox_star"));
+
 	SetUpFBO(screenSize.x, screenSize.y);
 }
 
@@ -66,6 +70,14 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	
+	if (ys::InputManager::getKeyDown('b'))
+	{
+		if(Imgui_Manager::Get_Imgui_Manager()->GetPickedObject() != nullptr)
+			Imgui_Manager::Get_Imgui_Manager()->GetPickedObject()->GetComponent<SpriteRenderer>()->GetMesh()->DrawNodes(Imgui_Manager::Get_Imgui_Manager()->GetPickedObject()->GetComponent<SpriteRenderer>()->GetMesh()->Get_Root());
+	}
+
+
 	Scene::Render(hDC, -1);
 
 	auto shader = ys::Resources::Find<graphics::Shader>(L"vc");
@@ -81,7 +93,7 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	glm::mat4 view = renderer::mainCamera->GetmainViewMatrix();
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 	
-	if (!Imgui_Manager::Get_Imgui_Manager()->isGizmoUsing())
+	if (Imgui_Manager::Get_Imgui_Manager()->isGizmoUsing())
 	{
 		float Closest_Dis = std::numeric_limits<float>::infinity();
 		int Choice_Index = -1;
@@ -195,6 +207,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	shader->Unbind();
+
 
 	//prevTexture Update
 	glCopyImageSubData(currentTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
@@ -337,22 +350,46 @@ void ys::PlanetaryScene::GenObject()
 	}
 
 
-	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
-	auto tr = mainObject->GetComponent<Transform>();
-	//tr->SetScale(glm::vec3(100.0f, 100.0f, 100.0f));
-	auto sp = mainObject->AddComponent<SpriteRenderer>();
-	sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
-	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
-	sp->SetObjectColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	{
+		auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
+		auto tr = mainObject->GetComponent<Transform>();
+		//tr->SetScale(glm::vec3(100.0f, 100.0f, 100.0f));
+		auto sp = mainObject->AddComponent<SpriteRenderer>();
+		sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+		sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+		sp->SetObjectColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
-	auto scale = tr->GetScale();
-	spheresIndex.emplace(reinterpret_cast<uintptr_t>(mainObject), std::make_pair(false, spheres.size()));
-	spheres.emplace_back(Sphere{
-			tr->GetPosition()
-			, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
-			, sp->GetMaterial()
-		}
-	);
+		auto scale = tr->GetScale();
+		spheresIndex.emplace(reinterpret_cast<uintptr_t>(mainObject), std::make_pair(false, spheres.size()));
+		spheres.emplace_back(Sphere{
+				tr->GetPosition()
+				, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
+				, sp->GetMaterial()
+			}
+		);
+	}
+
+	
+}
+
+void ys::PlanetaryScene::GenSkyBox()
+{
+	UINT cubetexturemap{};
+	glGenTextures(1, &cubetexturemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubetexturemap);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	for (UINT i = 0; i < 6; ++i)
+	{
+		int width, hight, nrChannels;
+		//UCHAR* data = stbi_load
+	}
+
+
 }
 
 void ys::PlanetaryScene::UpdateSSBO()
