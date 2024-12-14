@@ -56,7 +56,7 @@ float RandomValue(inout uint state)
 
 float RandomValueNormalDistribution(inout uint state) // Box-Muller transform
 {
-	float theta = 2 * 3.1415926 + RandomValue(state);
+	float theta = 2 * 3.1415926 * RandomValue(state);
 	float rho = sqrt(-2 * log(RandomValue(state)));
 	return rho * cos(theta);
 }
