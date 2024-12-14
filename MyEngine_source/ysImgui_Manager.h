@@ -59,7 +59,8 @@ namespace ys
 
 		static void SetObject(ys::GameObject* Game_Object);
 
-		static float Check_Object(ys::GameObject* Game_Object);
+		static glm::vec3 GenRayDir();
+		static float Check_Object(glm::vec3 rayDir, ys::GameObject* Game_Object);
 
 
 
@@ -112,9 +113,8 @@ namespace ys
 
 		static glm::vec3 CameraPos; // 현재 카메라 위치
 
-
-		static bool Drop_Object; // 현재 피킹할 오브젝트를 바꿀 준비가 되었는지?
-
+		static bool isObjectChanged;
+		static bool isPhongScreenHovered;
 
 		// 픽셀당 레이 수
 		static UINT rayPerPixel;

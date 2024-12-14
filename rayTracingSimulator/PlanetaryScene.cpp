@@ -54,12 +54,15 @@ void ys::PlanetaryScene::Update()
 
 void ys::PlanetaryScene::LateUpdate()
 {
+	auto prevCameraMatrix = renderer::mainCamera->GetmainViewMatrix();
 	Scene::LateUpdate();
+	auto cameraMatrix = renderer::mainCamera->GetmainViewMatrix();
+	if (prevCameraMatrix != cameraMatrix)
+		frameCount = 0;
 }
 
 void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 {
-	
 	glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, phongTexture, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
@@ -81,6 +84,25 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	glm::mat4 view = renderer::mainCamera->GetmainViewMatrix();
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 	
+	glm::mat4 axisWorldTrans{ 1.0f };
+	glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(axisWorldTrans));
+
+	glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+	glDrawArrays(GL_LINES, 0, 12 * 3);
+	shader->Unbind();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void ys::PlanetaryScene::Render(HDC hDC, const int& index)
+{
+	if (index != 0)return;
+
+	// Gizmo Update
 	if (!Imgui_Manager::Get_Imgui_Manager()->isGizmoUsing())
 	{
 		float Closest_Dis = std::numeric_limits<float>::infinity();
@@ -88,10 +110,12 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 
 		float check_dis = 0.f;
 
+		auto rayDir = Imgui_Manager::Get_Imgui_Manager()->GenRayDir();
 		auto AllObject = GetLayer(enums::LayerType::Object)->GetGameObjects();
+
 		for (int i = 0; i < AllObject.size(); ++i)
 		{
-			check_dis = Imgui_Manager::Get_Imgui_Manager()->Check_Object(AllObject[i]);
+			check_dis = Imgui_Manager::Get_Imgui_Manager()->Check_Object(rayDir, AllObject[i]);
 
 			if (Closest_Dis > check_dis)
 			{
@@ -116,93 +140,121 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 		if (object)
 		{
 			spheresIndex[reinterpret_cast<uintptr_t>(object)].first = true;
+			frameCount = 0;
 		}
 	}
-	
-
-
-	glm::mat4 axisWorldTrans{ 1.0f };
-	glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(axisWorldTrans));
-
-	glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-	glDrawArrays(GL_LINES, 0, 12 * 3);
-	shader->Unbind();
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void ys::PlanetaryScene::Render(HDC hDC, const int& index)
-{
-	if (index != 0)return;
 	// SSBO Update
 	UpdateSSBO();
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 
-	// 이건 일반 메인화면 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// Phong Render
+	if (frameCount == 0) PhongRender(hDC, index);
+
+	// RayTracing
+	glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, currentTexture, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	glViewport(0, 0, screenSize.x, screenSize.y);
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Phong Render
-	PhongRender(hDC, index);
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 	auto shader = ys::Resources::Find<graphics::Shader>(L"test");
 	shader->Bind();
 	glBindVertexArray(VAO);
-	unsigned int invProjectionMatrix = glGetUniformLocation(shader->GetShaderID(), "invProjectionMatrix"); //--- 투영 변환 값 설정
-	unsigned int invViewMatrix = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix"); //--- 뷰잉 변환 설정
-	unsigned int viewPosition = glGetUniformLocation(shader->GetShaderID(), "viewPosition");
-	unsigned int viewportSize = glGetUniformLocation(shader->GetShaderID(), "viewportSize");
-	unsigned int maxBounceCount = glGetUniformLocation(shader->GetShaderID(), "maxBounceCount");
-	unsigned int screenSize = glGetUniformLocation(shader->GetShaderID(), "screenSize");
-	unsigned int numRenderedFrame = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
-	unsigned int rayPerPixel = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
+	{
+		unsigned int invProjectionMatrix = glGetUniformLocation(shader->GetShaderID(), "invProjectionMatrix"); //--- 투영 변환 값 설정
+		unsigned int invViewMatrix = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix"); //--- 뷰잉 변환 설정
+		unsigned int viewPosition = glGetUniformLocation(shader->GetShaderID(), "viewPosition");
+		unsigned int viewportSize = glGetUniformLocation(shader->GetShaderID(), "viewportSize");
+		unsigned int maxBounceCount = glGetUniformLocation(shader->GetShaderID(), "maxBounceCount");
+		unsigned int screenSize = glGetUniformLocation(shader->GetShaderID(), "screenSize");
+		unsigned int numRenderedFrame = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
+		unsigned int rayPerPixel = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
+		glUniformMatrix4fv(invProjectionMatrix, 1, GL_FALSE
+			, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
 
-	glUniformMatrix4fv(invProjectionMatrix, 1, GL_FALSE
-		, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
+		glUniformMatrix4fv(invViewMatrix, 1, GL_FALSE
+			, glm::value_ptr(inverse(renderer::mainCamera->GetmainViewMatrix())));
 
-	glUniformMatrix4fv(invViewMatrix, 1, GL_FALSE
-		, glm::value_ptr(inverse(renderer::mainCamera->GetmainViewMatrix())));
+		glUniform3fv(viewPosition, 1
+			, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
 
-	glUniform3fv(viewPosition, 1
-		, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
+		glUniform2fv(viewportSize, 1
+			, glm::value_ptr(glm::vec2(this->screenSize)));
 
-	glUniform2fv(viewportSize, 1
-		, glm::value_ptr(glm::vec2(this->screenSize)));
+		glUniform1ui(maxBounceCount, Imgui_Manager::Get_Imgui_Manager()->Get_MaxBounceCount());
+		glUniform2uiv(screenSize, 1
+			, glm::value_ptr(this->screenSize));
+		glUniform1ui(numRenderedFrame, this->frameCount);
+		glUniform1ui(rayPerPixel, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
 
-	glUniform1ui(maxBounceCount, Imgui_Manager::Get_Imgui_Manager()->Get_MaxBounceCount());
-	glUniform2uiv(screenSize, 1
-		, glm::value_ptr(this->screenSize));
-	glUniform1ui(numRenderedFrame, this->frameCount);
-	glUniform1ui(rayPerPixel, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
-	
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, position));
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, texture));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, normal));
-	glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, position));
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, texture));
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, normal));
+		glEnableVertexAttribArray(2);
+	}
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	shader->Unbind();
+
+	auto mixShader = Resources::Find<graphics::Shader>(L"mix");
+	mixShader->Bind();
+
+	GLint oldTexture = glGetUniformLocation(mixShader->GetShaderID(), "oldTexture");
+	GLint newTexture = glGetUniformLocation(mixShader->GetShaderID(), "newTexture");
+	GLint mixNumRenderedFrame = glGetUniformLocation(mixShader->GetShaderID(), "numRenderedFrame");
+	GLint viewSize = glGetUniformLocation(mixShader->GetShaderID(), "viewSize");
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, currentTexture);
+	glUniform1i(newTexture, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, previousTexture);
+	glUniform1i(oldTexture, 1);
+
+	glUniform2uiv(viewSize, 1, glm::value_ptr(this->screenSize));
+
+	glUniform1i(mixNumRenderedFrame, frameCount);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	mixShader->Unbind();
 
 	//prevTexture Update
 	glCopyImageSubData(currentTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
 		previousTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
 		1920, 1080, 1);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	mixShader = Resources::Find<graphics::Shader>(L"mix");
+	mixShader->Bind();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, currentTexture);
+	glUniform1i(newTexture, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, phongTexture);
+	glUniform1i(oldTexture, 1);
+	
+	glUniform2uiv(viewSize, 1, glm::value_ptr(this->screenSize));
+
+	glUniform1i(mixNumRenderedFrame, frameCount);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	mixShader->Unbind();
+	frameCount++;
+	std::cout << frameCount << std::endl;
 	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO(phongTexture);
-	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO_Two(currentTexture);
+	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO_Two(currentTexture);	
 }
 
 
@@ -280,9 +332,10 @@ void ys::PlanetaryScene::GenObject()
 	camera->AddComponent<CameraScript>();
 
 	{
-		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, -2.0f));
+		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(-43.03f, 33.94f, 78.11f));
 		auto lightTr = light->GetComponent<Transform>();
 		auto lightSp = light->AddComponent<SpriteRenderer>();
+		lightTr->SetScale(glm::vec3(24.67f, 24.67f, 24.67f));
 		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
 		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 		lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -300,12 +353,12 @@ void ys::PlanetaryScene::GenObject()
 		);
 	}
 	{
-		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(-2.0f, 0.0f, 0.0f));
+		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(-2.26f, 0.78f, 2.05f));
 		auto lightTr = light->GetComponent<Transform>();
 		auto lightSp = light->AddComponent<SpriteRenderer>();
 		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
 		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
-		lightSp->SetObjectColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+		lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 		auto scale = lightTr->GetScale();
 
@@ -318,7 +371,7 @@ void ys::PlanetaryScene::GenObject()
 		);
 	}
 	{
-		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(2.0f, 0.0f, 0.0f));
+		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.06f, 0.57f, 1.98f));
 		auto lightTr = light->GetComponent<Transform>();
 		auto lightSp = light->AddComponent<SpriteRenderer>();
 		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
@@ -337,9 +390,9 @@ void ys::PlanetaryScene::GenObject()
 	}
 
 
-	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, 0.0f, 2.0f));
+	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, -10.51f, 2.0f));
 	auto tr = mainObject->GetComponent<Transform>();
-	//tr->SetScale(glm::vec3(100.0f, 100.0f, 100.0f));
+	tr->SetScale(glm::vec3(10.41f, 10.41f, 10.41f));
 	auto sp = mainObject->AddComponent<SpriteRenderer>();
 	sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
 	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));

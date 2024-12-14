@@ -60,7 +60,7 @@ void main()
         vec3 lightPos = spheres[i].center;
         vec3 lightColor = spheres[i].material.emittedColor.xyz * spheres[i].material.emissionStrength;
 
-        float dist = max(distance(lightPos, outData.position.xyz), 1.0);
+        float dist = distance(lightPos, outData.position.xyz);
 
         if (abs(dist - spheres[i].radius) < 0.1)
         {
@@ -83,28 +83,6 @@ void main()
         vec3 lightEffect = (diffuse + specular);
         result += lightEffect;
     }
-//	for (int i = 0; i < spheres.length(); ++i)
-//	{
-//		if (spheres[i].material.emissionStrength <= 0.0) continue;
-//		vec3 lightPos = spheres[i].center;
-//		vec3 lightColor = spheres[i].material.emittedColor.xyz;
-//
-//		float dist = max(distance(lightPos, outData.position.xyz),1);
-//
-//		vec3 norm = normalize(outData.normal);
-//		vec3 lightDir = normalize(lightPos - outData.position.xyz);
-//		float diffuseLight = max(dot(norm, lightDir), 0.0);
-//		vec3 diffuse = diffuseLight * texColor.xyz;
-//
-//		int shininess = 16;
-//		vec3 viewDir = normalize(viewPos - outData.position.xyz);
-//		vec3 reflectDir =  reflect(-lightDir, norm);
-//		float specularLight = pow(max(dot (viewDir, reflectDir), 0.0), shininess);
-//		vec3 specular = specularLight * lightColor;
-//
-//		vec3 lightInfo = (diffuse + specular);
-//		result += lightInfo + lightColor / (dist * dist);
-//	}
 
 	result = clamp(result, 0.0f, 1.0f);
 

@@ -56,16 +56,16 @@ float RandomValue(inout uint state)
 
 float RandomValueNormalDistribution(inout uint state) // Box-Muller transform
 {
-	float theta = 2 * 3.1415926 + RandomValue(state);
+	float theta = 2 * 3.1415926 * RandomValue(state);
 	float rho = sqrt(-2 * log(RandomValue(state)));
 	return rho * cos(theta);
 }
 
 vec3 RandomDirection(inout uint state)
 {
-	float x = RandomValueNormalDistribution(state) * 2 - 1;
-	float y = RandomValueNormalDistribution(state) * 2 - 1;
-	float z = RandomValueNormalDistribution(state) * 2 - 1;
+	float x = RandomValueNormalDistribution(state);
+	float y = RandomValueNormalDistribution(state);
+	float z = RandomValueNormalDistribution(state);
 	return normalize(vec3(x, y, z));
 }
 
@@ -138,6 +138,22 @@ vec3 Trace(Ray ray, inout uint rngState)
 			incomingLight += emittedLight * rayColor;
 			rayColor *= material.color.xyz;
 		}
+		else
+		{
+//			float skyGradienT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
+//			vec3 skyGradien = mix(vec3(205, 241, 252), vec3(116, 176, 255), skyGradienT);
+//			float sun = pow(max(0, dot(ray.dir, sunPosition.xyz)), sunFocus) * sunIntensity;
+//
+//			float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
+//			float sunMask = int(groundToSkyT >= 1);
+//			return mix(vec3(0.6, 0.3, 0.18), skyGradien, groundToSkyT) + sun * sunMask;
+//		
+//			or......
+//			
+//			cubemap texture?
+
+			break;
+		}
 	}
 
 	return incomingLight;
@@ -168,7 +184,7 @@ void main()
 	uvec2 pixelCoord = uvec2(gl_FragCoord.xy);
 	uint pixelIndex = (pixelCoord.y * numPixel.x + pixelCoord.x);
 
-	uint rngState = pixelIndex + numRenderedFrame;
+	uint rngState = pixelIndex + numRenderedFrame * 925904;
 	
 	vec3 total = vec3(0.0f);
 

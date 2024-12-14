@@ -2,16 +2,16 @@
 
 out vec4 FragColor;
 
-uniform sampler2D frontTexture;
-uniform sampler2D backTexture;
-uniform float numRenderedFrame;
-uniform vec2 viewSize;
+uniform sampler2D oldTexture;
+uniform sampler2D newTexture;
+uniform int numRenderedFrame;
+uniform uvec2 viewSize;
 
 void main()
 {
-	vec2 TexCoords = gl_FragCoord.xy / viewSize;
-	vec4 frontTexColor = texture(frontTexture, TexCoords);
-	vec4 backTexColor = texture(backTexture, TexCoords);
+	vec2 TexCoords = gl_FragCoord.xy / vec2(viewSize);
+	vec4 oldTexColor = texture(oldTexture, TexCoords);
+	vec4 newTexColor = texture(newTexture, TexCoords);
 	
-	FragColor = mix(frontTexColor, backTexColor, 1 / numRenderedFrame);
+	FragColor = mix(oldTexColor, newTexColor, 1 / (numRenderedFrame + 1));
 }
