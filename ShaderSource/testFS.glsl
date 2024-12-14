@@ -131,7 +131,7 @@ vec3 Trace(Ray ray, inout uint rngState)
 		if (hitInfo.isHit)
 		{
 			ray.origin = hitInfo.hitPoint;
-			ray.dir = RandomHemisphereDirection(hitInfo.normal, rngState);
+			ray.dir = normalize(hitInfo.normal + RandomDirection(rngState));
 
 			Material material = hitInfo.material;
 			vec3 emittedLight = (material.emittedColor * material.emissionStrength).xyz;

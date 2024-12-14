@@ -10,11 +10,11 @@ namespace ys
 
 void ys::ResourceLoad()
 {
-	Resources::Load<graphics::Shader>(L"mix", L"mix,FS");
+	Resources::Load<graphics::Shader>(L"mix", L"mix,VS,FS");
 	Resources::Load<graphics::Shader>(L"raytracing8", L"legeno8,CS");
 	Resources::Load<graphics::Shader>(L"raytracing16", L"legeno16,CS");
 	Resources::Load<graphics::Shader>(L"raytracing32", L"legeno32,CS");
-	Resources::Load<graphics::Shader>(L"test", L"test,FS");
+	Resources::Load<graphics::Shader>(L"test", L"test,VS,FS");
 	Resources::Load<graphics::Shader>(L"phong", L"phong,VS,FS");
 	Resources::Load<graphics::Shader>(L"vc", L"vc,VS,FS");
 	Resources::Load<Mesh>(L"Cube", L"Cube");

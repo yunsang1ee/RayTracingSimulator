@@ -28,10 +28,12 @@ GLuint ys::Imgui_Manager::resizeTexture = 0;
 
 
 bool ys::Imgui_Manager::isPhongScreenHovered = false;
+bool ys::Imgui_Manager::isObjectScreenHovered = false;
 
 
 UINT ys::Imgui_Manager::rayPerPixel = 1;
 UINT ys::Imgui_Manager::maxBounceCount = 1;
+UINT ys::Imgui_Manager::delay = 1;
 
 float ys::Imgui_Manager::fov = 30.0f;
 
@@ -143,6 +145,8 @@ void ys::Imgui_Manager::Render()
 	ImGui::SetNextWindowSize(ImVec2(400, 1080), ImGuiCond_Always); // 한번만 창 크기 설정(크기 조정 가능)
 	ImGuiWindowFlags tool_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 	ImGui::Begin("Object", nullptr, tool_flags);
+	
+	isObjectScreenHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
 
 	int Ray_Per_Pixel = rayPerPixel;
 	//ImGui::Text("");
@@ -158,6 +162,13 @@ void ys::Imgui_Manager::Render()
 	ImGui::SliderInt("Max Bounce Count", &MaxBounceCount, 1, 100, "Value = %d"); // 현재 변수 값 출력
 	maxBounceCount = MaxBounceCount;
 	ImGui::Text("Max Bounce Count: %d", maxBounceCount);
+	
+	int delay = Imgui_Manager::delay;
+	ImGui::Text("");
+	ImGui::Text("Frame Delay");
+	ImGui::SliderInt("Frame Delay", &delay, 1, 100, "Value = %d"); // 현재 변수 값 출력
+	Imgui_Manager::delay = delay;
+	ImGui::Text("Frame Delay: %d", delay);
 
 	ImGui::Text("");
 	ImGui::Text("Fov");
@@ -322,6 +333,17 @@ void ys::Imgui_Manager::Test_Object(ys::GameObject* Game_Object)
 bool ys::Imgui_Manager::isGizmoUsing()
 {
 	if ((ImGuizmo::IsUsing() || !(ImGui::IsMouseClicked(ImGuiMouseButton_Left) && isPhongScreenHovered)))
+	{
+		return true;
+	}
+
+	return false;
+
+}
+
+bool ys::Imgui_Manager::isObjectChange()
+{
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && isObjectScreenHovered)
 	{
 		return true;
 	}

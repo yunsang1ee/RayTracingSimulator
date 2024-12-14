@@ -4,8 +4,11 @@ out vec4 FragColor;
 
 uniform sampler2D oldTexture;
 uniform sampler2D newTexture;
-uniform int numRenderedFrame;
+uniform float numRenderedFrame;
+//uniform float delay;
 uniform uvec2 viewSize;
+
+in vec2 texCoord;
 
 void main()
 {
@@ -13,5 +16,5 @@ void main()
 	vec4 oldTexColor = texture(oldTexture, TexCoords);
 	vec4 newTexColor = texture(newTexture, TexCoords);
 	
-	FragColor = mix(oldTexColor, newTexColor, 1 / (numRenderedFrame + 1));
+	FragColor = mix(oldTexColor, newTexColor, 1 / float(numRenderedFrame + 1));
 }

@@ -143,6 +143,8 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 			frameCount = 0;
 		}
 	}
+
+	if (Imgui_Manager::Get_Imgui_Manager()->isObjectChange()) frameCount = 0;
 	// SSBO Update
 	UpdateSSBO();
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
@@ -189,7 +191,9 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		glUniform1ui(maxBounceCount, Imgui_Manager::Get_Imgui_Manager()->Get_MaxBounceCount());
 		glUniform2uiv(screenSize, 1
 			, glm::value_ptr(this->screenSize));
+
 		glUniform1ui(numRenderedFrame, this->frameCount);
+
 		glUniform1ui(rayPerPixel, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
 
 		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
@@ -204,12 +208,20 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	shader->Unbind();
 
+	if (frameCount == 0)
+		glCopyImageSubData(phongTexture, GL_TEXTURE_2D, 0, 0, 0, 0, 
+			previousTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
+			1920, 1080, 1);
+
+	// raytracing mix
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	auto mixShader = Resources::Find<graphics::Shader>(L"mix");
 	mixShader->Bind();
 
 	GLint oldTexture = glGetUniformLocation(mixShader->GetShaderID(), "oldTexture");
 	GLint newTexture = glGetUniformLocation(mixShader->GetShaderID(), "newTexture");
 	GLint mixNumRenderedFrame = glGetUniformLocation(mixShader->GetShaderID(), "numRenderedFrame");
+	GLint delay = glGetUniformLocation(mixShader->GetShaderID(), "delay");
 	GLint viewSize = glGetUniformLocation(mixShader->GetShaderID(), "viewSize");
 
 	glActiveTexture(GL_TEXTURE0);
@@ -219,38 +231,20 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, previousTexture);
 	glUniform1i(oldTexture, 1);
-
-	glUniform2uiv(viewSize, 1, glm::value_ptr(this->screenSize));
-
-	glUniform1i(mixNumRenderedFrame, frameCount);
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	mixShader->Unbind();
-
-	//prevTexture Update
-	glCopyImageSubData(currentTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
-		previousTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
-		1920, 1080, 1);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	mixShader = Resources::Find<graphics::Shader>(L"mix");
-	mixShader->Bind();
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, currentTexture);
-	glUniform1i(newTexture, 0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, phongTexture);
-	glUniform1i(oldTexture, 1);
 	
 	glUniform2uiv(viewSize, 1, glm::value_ptr(this->screenSize));
 
-	glUniform1i(mixNumRenderedFrame, frameCount);
+	//glUniform1ui(mixNumRenderedFrame, );
+	glUniform1f(mixNumRenderedFrame, this->frameCount / (float)Imgui_Manager::Get_Imgui_Manager()->Get_Delay());
+
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	mixShader->Unbind();
+
+	glBindTexture(GL_TEXTURE_2D, previousTexture);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 1920, 1080, 0);
+
+
 	frameCount++;
 	std::cout << frameCount << std::endl;
 	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO(phongTexture);

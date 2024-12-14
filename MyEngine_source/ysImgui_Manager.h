@@ -63,17 +63,13 @@ namespace ys
 		static float Check_Object(glm::vec3 rayDir, ys::GameObject* Game_Object);
 
 
-
 		// 레이 퍼 픽셀
 		static UINT Get_RayPerPixel() { return rayPerPixel; }
 		static UINT Get_MaxBounceCount() { return maxBounceCount; }
+		static UINT Get_Delay() { return delay; }
 
 		// fov
 		static float Get_Fov() { return glm::radians(fov); }
-
-
-
-
 
 		static void Test_Object(ys::GameObject* Game_Object);
 
@@ -85,6 +81,7 @@ namespace ys
 
 		static bool isGizmoUsing();
 
+		static bool isObjectChange();
 
 	private:
 		static void Change_Transform_Object();
@@ -114,11 +111,13 @@ namespace ys
 		static glm::vec3 CameraPos; // 현재 카메라 위치
 
 		static bool isObjectChanged;
+		static bool isObjectScreenHovered;
 		static bool isPhongScreenHovered;
 
 		// 픽셀당 레이 수
 		static UINT rayPerPixel;
 		static UINT maxBounceCount;
+		static UINT delay;
 
 		// fov
 
