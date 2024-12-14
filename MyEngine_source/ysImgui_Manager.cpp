@@ -31,6 +31,7 @@ bool ys::Imgui_Manager::Drop_Object = false;
 
 
 UINT ys::Imgui_Manager::rayPerPixel = 1;
+UINT ys::Imgui_Manager::Dispath = 8;
 UINT ys::Imgui_Manager::maxBounceCount = 1;
 
 float ys::Imgui_Manager::fov = glm::pi<float>() / 3.0f;
@@ -142,8 +143,21 @@ void ys::Imgui_Manager::Render()
 	ImGuiWindowFlags tool_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 	ImGui::Begin("Object", nullptr, tool_flags);
 
+
+	// 선택할 변수 
+	ImGui::Text("");
+	ImGui::Text("Dispath");
+	static int dispath = Dispath; // 라디오 버튼 추가 
+	
+	ImGui::RadioButton("dispath 8", &dispath, 8);
+	ImGui::RadioButton("dispath 16", &dispath, 16);
+	ImGui::RadioButton("dispath 32", &dispath, 32); // 현재 선택한 옵션 출력 
+	Dispath = dispath;
+	ImGui::Text("Selected Option: %d", dispath);
+
+
 	int Ray_Per_Pixel = rayPerPixel;
-	//ImGui::Text("");
+	ImGui::Text("");
 	ImGui::Text("Ray Per Pixel");
 	ImGui::SliderInt("Ray Per Pixel", &Ray_Per_Pixel, 1, 100, "Value = %d"); // 현재 변수 값 출력
 	rayPerPixel = Ray_Per_Pixel;
@@ -161,6 +175,8 @@ void ys::Imgui_Manager::Render()
 	ImGui::Text("Fov");
 	ImGui::SliderFloat("Fov", &fov, 10, 90, "Value = %.3f"); // 현재 변수 값 출력
 	ImGui::Text("Fov: %.3f", fov);
+
+
 
 
 	if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows))

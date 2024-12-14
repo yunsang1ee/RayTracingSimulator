@@ -66,6 +66,7 @@ namespace ys
 		// 레이 퍼 픽셀
 		static UINT Get_RayPerPixel() { return rayPerPixel; }
 		static UINT Get_MaxBounceCount() { return maxBounceCount; }
+		static UINT Get_Dispath() { return Dispath; }
 
 		// fov
 		static float Get_Fov() { return glm::radians(fov); }
@@ -118,6 +119,7 @@ namespace ys
 
 		// 픽셀당 레이 수
 		static UINT rayPerPixel;
+		static UINT Dispath;
 		static UINT maxBounceCount;
 
 		// fov
