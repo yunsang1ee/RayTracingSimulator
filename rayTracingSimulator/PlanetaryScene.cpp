@@ -171,60 +171,109 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	if (frameCount == 0) PhongRender(hDC, index);
 
 	// RayTracing
-	glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, currentTexture, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
-
-	glViewport(0, 0, screenSize.x, screenSize.y);
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
-	auto shader = ys::Resources::Find<graphics::Shader>(L"test");
-	shader->Bind();
-	glBindVertexArray(VAO);
+	auto dispatch = Imgui_Manager::Get_Imgui_Manager()->Get_Dispatch();
+	if (!dispatch)
 	{
-		unsigned int invProjectionMatrix = glGetUniformLocation(shader->GetShaderID(), "invProjectionMatrix"); //--- 투영 변환 값 설정
-		unsigned int invViewMatrix = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix"); //--- 뷰잉 변환 설정
-		unsigned int viewPosition = glGetUniformLocation(shader->GetShaderID(), "viewPosition");
-		unsigned int viewportSize = glGetUniformLocation(shader->GetShaderID(), "viewportSize");
-		unsigned int maxBounceCount = glGetUniformLocation(shader->GetShaderID(), "maxBounceCount");
-		unsigned int screenSize = glGetUniformLocation(shader->GetShaderID(), "screenSize");
-		unsigned int numRenderedFrame = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
-		unsigned int rayPerPixel = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
-		glUniformMatrix4fv(invProjectionMatrix, 1, GL_FALSE
-			, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
+		glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, currentTexture, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
-		glUniformMatrix4fv(invViewMatrix, 1, GL_FALSE
-			, glm::value_ptr(inverse(renderer::mainCamera->GetmainViewMatrix())));
+		glViewport(0, 0, screenSize.x, screenSize.y);
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUniform3fv(viewPosition, 1
-			, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
+		auto shader = ys::Resources::Find<graphics::Shader>(L"test");
+		shader->Bind();
+		glBindVertexArray(VAO);
+		{
+			unsigned int invProjectionMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invProjectionMatrix");
+			unsigned int invViewMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix");
+			unsigned int viewPositionLoc = glGetUniformLocation(shader->GetShaderID(), "viewPosition");
+			unsigned int viewportSizeLoc = glGetUniformLocation(shader->GetShaderID(), "viewportSize");
+			unsigned int maxBounceCountLoc = glGetUniformLocation(shader->GetShaderID(), "maxBounceCount");
+			unsigned int screenSizeLoc = glGetUniformLocation(shader->GetShaderID(), "screenSize");
+			unsigned int numRenderedFrameLoc = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
+			unsigned int rayPerPixelLoc = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
 
-		glUniform2fv(viewportSize, 1
-			, glm::value_ptr(glm::vec2(this->screenSize)));
+			glUniformMatrix4fv(invProjectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
+			glUniformMatrix4fv(invViewMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainViewMatrix())));
+			glUniform3fv(viewPositionLoc, 1, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
+			glUniform2fv(viewportSizeLoc, 1, glm::value_ptr(glm::vec2(this->screenSize)));
+			glUniform1ui(maxBounceCountLoc, Imgui_Manager::Get_Imgui_Manager()->Get_MaxBounceCount());
+			glUniform2uiv(screenSizeLoc, 1, glm::value_ptr(screenSize));
+			glUniform1ui(numRenderedFrameLoc, frameCount);
+			glUniform1ui(rayPerPixelLoc, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
 
-		glUniform1ui(maxBounceCount, Imgui_Manager::Get_Imgui_Manager()->Get_MaxBounceCount());
-		glUniform2uiv(screenSize, 1
-			, glm::value_ptr(this->screenSize));
+			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, position));
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, texture));
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, normal));
+			glEnableVertexAttribArray(2);
+		}
 
-		glUniform1ui(numRenderedFrame, this->frameCount);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		shader->Unbind();
+	}
+	else
+	{
+		auto shader = Resources::Find<graphics::Shader>(L"raytracing" + std::to_wstring(Imgui_Manager::Get_Imgui_Manager()->Get_Dispatch()));
+		shader->Bind();
+		glBindImageTexture(1, currentTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+		glClearTexImage(currentTexture, 0, GL_RGBA, GL_UNSIGNED_INT, glm::value_ptr(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)));
 
-		glUniform1ui(rayPerPixel, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
+		unsigned int invProjectionMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invProjectionMatrix");
+		unsigned int invViewMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix");
+		unsigned int viewPositionLoc = glGetUniformLocation(shader->GetShaderID(), "viewPosition");
+		unsigned int viewportSizeLoc = glGetUniformLocation(shader->GetShaderID(), "viewportSize");
+		unsigned int maxBounceCountLoc = glGetUniformLocation(shader->GetShaderID(), "maxBounceCount");
+		unsigned int screenSizeLoc = glGetUniformLocation(shader->GetShaderID(), "screenSize");
+		unsigned int numRenderedFrameLoc = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
+		unsigned int rayPerPixelLoc = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
 
+		glUniformMatrix4fv(invProjectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
+		glUniformMatrix4fv(invViewMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainViewMatrix())));
+		glUniform3fv(viewPositionLoc, 1, glm::value_ptr(renderer::mainCamera->GetOwner()->GetComponent<Transform>()->GetPosition()));
+		glUniform2fv(viewportSizeLoc, 1, glm::value_ptr(glm::vec2(this->screenSize)));
+		glUniform1ui(maxBounceCountLoc, Imgui_Manager::Get_Imgui_Manager()->Get_MaxBounceCount());
+		glUniform2uiv(screenSizeLoc, 1, glm::value_ptr(screenSize));
+		glUniform1ui(numRenderedFrameLoc, frameCount);
+		glUniform1ui(rayPerPixelLoc, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
+
+		if (dispatch == 8)
+			shader->DispatchCompute(glm::vec2(1920, 1080), graphics::Shader::DispatchMode::dispatch8x8x1);
+		else if (dispatch == 16)
+			shader->DispatchCompute(glm::vec2(1920, 1080), graphics::Shader::DispatchMode::dispatch16x16x1);
+		else if (dispatch == 32)
+			shader->DispatchCompute(glm::vec2(1920, 1080), graphics::Shader::DispatchMode::dispatch32x32x1);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, currentTexture, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+		glViewport(0, 0, screenSize.x, screenSize.y);
+
+		shader = Resources::Find<graphics::Shader>(L"renderTexture");
+		shader->Bind();
+		GLint textureLocation = glGetUniformLocation(shader->GetShaderID(), "textureSampler");
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, currentTexture);
+		glUniform1i(textureLocation, 0);
+
+		glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, position));
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, texture));
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, normal));
 		glEnableVertexAttribArray(2);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	shader->Unbind();
-
 	if (frameCount == 0)
 		glCopyImageSubData(phongTexture, GL_TEXTURE_2D, 0, 0, 0, 0, 
 			previousTexture, GL_TEXTURE_2D, 0, 0, 0, 0,
@@ -259,7 +308,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	mixShader->Unbind();
 
 	glBindTexture(GL_TEXTURE_2D, previousTexture);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 1920, 1080, 0);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, 1920, 1080, 0);
 
 
 	frameCount++;
@@ -294,19 +343,19 @@ void ys::PlanetaryScene::SetUpFBO(int iX, int iY)
 
 	glGenTextures(1, &currentTexture);
 	glBindTexture(GL_TEXTURE_2D, currentTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glGenTextures(1, &previousTexture);
 	glBindTexture(GL_TEXTURE_2D, previousTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glGenTextures(1, &phongTexture);
 	glBindTexture(GL_TEXTURE_2D, phongTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
@@ -351,6 +400,7 @@ void ys::PlanetaryScene::GenObject()
 		lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		lightSp->SetLightColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		lightSp->SetLightStrength(1.0f);
+		lightSp->IsSun();
 
 		auto scale = lightTr->GetScale();
 
@@ -369,6 +419,26 @@ void ys::PlanetaryScene::GenObject()
 		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
 		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 		lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		lightSp->SetSmoothness(1.0f);
+
+		auto scale = lightTr->GetScale();
+
+		spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
+		spheres.emplace_back(Sphere{
+				lightTr->GetPosition()
+				, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
+				, lightSp->GetMaterial()
+			}
+		);
+	}
+	{
+		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(-4.26f, 0.78f, 2.05f));
+		auto lightTr = light->GetComponent<Transform>();
+		auto lightSp = light->AddComponent<SpriteRenderer>();
+		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
+		lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		lightSp->SetSmoothness(1.0f);
 
 		auto scale = lightTr->GetScale();
 
@@ -387,6 +457,7 @@ void ys::PlanetaryScene::GenObject()
 		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
 		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 		lightSp->SetObjectColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+		lightSp->SetSmoothness(0.0f);
 
 		auto scale = lightTr->GetScale();
 
@@ -407,6 +478,7 @@ void ys::PlanetaryScene::GenObject()
 	sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
 	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 	sp->SetObjectColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	sp->SetSmoothness(0.0f);
 
 		auto scale = tr->GetScale();
 		spheresIndex.emplace(reinterpret_cast<uintptr_t>(mainObject), std::make_pair(false, spheres.size()));

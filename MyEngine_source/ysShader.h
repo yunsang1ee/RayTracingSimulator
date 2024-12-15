@@ -6,6 +6,11 @@ namespace ys::graphics
 	class Shader : public Resource
 	{
 	public:
+		enum class DispatchMode
+		{
+			dispatch8x8x1 = 0, dispatch16x16x1 = 3, dispatch32x32x1 = 6
+		};
+
 		Shader();
 		virtual ~Shader();
 
@@ -18,14 +23,33 @@ namespace ys::graphics
 		GLuint CreateComputeShader(std::wstring path);
 		GLuint GetShaderID() const { return shaderID; }
 
-		void Bind(GLuint computeShaderOffset = 0) const
+		void Bind() const
 		{
 			glUseProgram(shaderID);
+		}
+
+		void DispatchCompute(glm::vec2 screenSize, DispatchMode mode = DispatchMode::dispatch8x8x1)
+		{
 			if (isComputeShader)
 			{
-				glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, dispatchIndirectBuffer);
-				glDispatchComputeIndirect(computeShaderOffset);
-				glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+				glm::uvec2 dispatchCommand;
+				switch (mode) 
+				{
+				case DispatchMode::dispatch8x8x1: 
+					dispatchCommand.x = (GLuint)ceil(screenSize.x / 8.0); 
+					dispatchCommand.y = (GLuint)ceil(screenSize.y / 8.0); 
+					break;
+				case DispatchMode::dispatch16x16x1:
+					dispatchCommand.x = (GLuint)ceil(screenSize.x / 16.0);
+					dispatchCommand.y = (GLuint)ceil(screenSize.y / 16.0);
+					break;
+				case DispatchMode::dispatch32x32x1:
+					dispatchCommand.x = (GLuint)ceil(screenSize.x / 32.0);
+					dispatchCommand.y = (GLuint)ceil(screenSize.y / 32.0);
+					break;
+				}
+				glDispatchCompute(dispatchCommand.x, dispatchCommand.y, 1);
+				glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			}
 		}
 
@@ -41,6 +65,5 @@ namespace ys::graphics
 		GLuint fragmentShader;
 		bool isComputeShader;
 		GLuint computeShader;
-		GLuint dispatchIndirectBuffer;
 	};
 }

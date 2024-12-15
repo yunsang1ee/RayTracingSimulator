@@ -22,6 +22,7 @@
     <None Include="$(MSBuildThisFileDirectory)phongVS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)testFS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)testVS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)renderTextureFS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)vcFS.glsl" />
     <None Include="$(MSBuildThisFileDirectory)vcVS.glsl" />
   </ItemGroup>

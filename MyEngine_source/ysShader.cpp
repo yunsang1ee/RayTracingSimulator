@@ -132,11 +132,6 @@ GLuint ys::graphics::Shader::CreateComputeShader(std::wstring path)
 		std::cerr << "ERROR: computeShader 컴파일 실패\n" << errorLog << std::endl;
 		return -1;
 	}
-	glGenBuffers(1, &dispatchIndirectBuffer);
-	glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, dispatchIndirectBuffer);
-
-	GLuint dispatchParams[9] = { 8, 8, 1, 16, 16, 1, 32, 32, 1 };
-	glBufferData(GL_DISPATCH_INDIRECT_BUFFER, sizeof(dispatchParams), dispatchParams, GL_DYNAMIC_DRAW);
 
 	return computeShader;
 }

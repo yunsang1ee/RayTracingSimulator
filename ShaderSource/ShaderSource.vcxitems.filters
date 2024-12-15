@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)testFS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)testVS.glsl" />
+    <None Include="$(MSBuildThisFileDirectory)legeno8CS.glsl">
+      <Filter>legeno</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)legeno16CS.glsl">
+      <Filter>legeno</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)legeno32CS.glsl">
+      <Filter>legeno</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)mixVS.glsl">
+      <Filter>mix</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)phongFS.glsl">
+      <Filter>phong</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)phongVS.glsl">
+      <Filter>phong</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)vcFS.glsl">
+      <Filter>vc</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)vcVS.glsl">
+      <Filter>vc</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)renderTextureFS.glsl">
+      <Filter>legeno</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="legeno">
+      <UniqueIdentifier>{7057fabb-c610-4c37-9b8f-4a6fc040c630}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mix">
+      <UniqueIdentifier>{c572199c-4aa6-455f-a8f8-e20dc463a723}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="phong">
+      <UniqueIdentifier>{e71ad4f5-0a3d-4b3d-b0d4-f93371c90986}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vc">
+      <UniqueIdentifier>{fa43b9d3-37e9-4348-8697-7181859e9aa5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)mixFS.glsl">
+      <Filter>mix</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

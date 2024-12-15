@@ -32,7 +32,7 @@ bool ys::Imgui_Manager::isObjectScreenHovered = false;
 
 
 UINT ys::Imgui_Manager::rayPerPixel = 1;
-UINT ys::Imgui_Manager::Dispath = 8;
+UINT ys::Imgui_Manager::dispatch = 8;
 UINT ys::Imgui_Manager::maxBounceCount = 1;
 UINT ys::Imgui_Manager::delay = 1;
 
@@ -151,12 +151,13 @@ void ys::Imgui_Manager::Render()
 	// 선택할 변수 
 	ImGui::Text("");
 	ImGui::Text("Dispath");
-	static int dispath = Dispath; // 라디오 버튼 추가 
+	static int dispath = dispatch; // 라디오 버튼 추가 
 	
+	ImGui::RadioButton("fargment", &dispath, 0);
 	ImGui::RadioButton("dispath 8", &dispath, 8);
 	ImGui::RadioButton("dispath 16", &dispath, 16);
 	ImGui::RadioButton("dispath 32", &dispath, 32); // 현재 선택한 옵션 출력 
-	Dispath = dispath;
+	dispatch = dispath;
 	ImGui::Text("Selected Option: %d", dispath);
 
 
@@ -177,7 +178,7 @@ void ys::Imgui_Manager::Render()
 	ImGui::SliderInt("Max Bounce Count", &MaxBounceCount, 1, 100, "Value = %d"); // 현재 변수 값 출력
 	maxBounceCount = MaxBounceCount;
 	ImGui::Text("Max Bounce Count: %d", maxBounceCount);
-	
+
 	int delay = Imgui_Manager::delay;
 	ImGui::Text("");
 	ImGui::Text("Frame Delay");
@@ -205,17 +206,22 @@ void ys::Imgui_Manager::Render()
 
 		ImGui::ColorButton("Object_Color", ImVec4(color1.x, color1.y, color1.z,1.0));
 
-
-
-		float emissionstrength = Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().emissionStrength;
+		float smoothness = Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().smoothness;
 		ImGui::Text("");
-		ImGui::Text("emissionStrength");
-		ImGui::SliderFloat("emissionStrength", &emissionstrength, 0.f, 10.f, "Value = %.3f"); // 현재 변수 값 출력
-		Object_Pointer->GetComponent<SpriteRenderer>()->SetLightStrength(emissionstrength);
-		ImGui::Text("emissionStrength: %.3f", emissionstrength);
+		ImGui::Text("Smoothness");
+		ImGui::SliderFloat("Smoothness", &smoothness, 0.f, 1.f, "Value = %.3f"); // 현재 변수 값 출력
+		Object_Pointer->GetComponent<SpriteRenderer>()->SetSmoothness(smoothness);
+		ImGui::Text("Smoothness: %.3f", smoothness);
 
+		
+		float specularProbability = Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().specularProbability;
+		ImGui::Text("");
+		ImGui::Text("SpecularProbability");
+		ImGui::SliderFloat("SpecularProbability", &specularProbability, 0.f, 1.f, "Value = %.3f"); // 현재 변수 값 출력
+		Object_Pointer->GetComponent<SpriteRenderer>()->SetSpecularProbability(specularProbability);
+		ImGui::Text("SpecularProbability: %.3f", specularProbability);
 
-
+		
 		// 색상 변수 선언
 		glm::vec4 EmittedColor = { Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().emittedColor }; // 빨강 
 		// 색상 편집기 추가 
@@ -227,6 +233,15 @@ void ys::Imgui_Manager::Render()
 		Object_Pointer->GetComponent<SpriteRenderer>()->SetLightColor(glm::vec4(Emitted_Color[0], Emitted_Color[1], Emitted_Color[2], EmittedColor.w));
 
 		ImGui::ColorButton("EmittedColor", ImVec4(EmittedColor.x, EmittedColor.y, EmittedColor.z, 1.0));
+
+
+		float emissionstrength = Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().emissionStrength;
+		ImGui::Text("");
+		ImGui::Text("emissionStrength");
+		ImGui::SliderFloat("emissionStrength", &emissionstrength, 0.f, 10.f, "Value = %.3f"); // 현재 변수 값 출력
+		Object_Pointer->GetComponent<SpriteRenderer>()->SetLightStrength(emissionstrength);
+		ImGui::Text("emissionStrength: %.3f", emissionstrength);
+				
 
 	}
 	else

@@ -15,11 +15,13 @@ struct VertexOut
 
 struct Material
 {
-    vec4 color;				// 16
-    vec4 emittedColor;		// 16
-    float emissionStrength;	// 4 + 12
-}; // 48
-
+	vec4 color;             // 16
+	vec4 emittedColor;		// 16=
+	float emissionStrength;	// 4	+ 12
+	float smoothness;
+	float specularProbability;
+	int flag;
+};
 struct Sphere
 {
     vec3 center;		// 12 + 4
@@ -58,11 +60,11 @@ void main()
     {
         if (spheres[i].material.emissionStrength <= 0.0) continue;
         vec3 lightPos = spheres[i].center;
-        vec3 lightColor = spheres[i].material.emittedColor.xyz * spheres[i].material.emissionStrength;
+        vec3 lightColor = spheres[i].material.emittedColor.rgb * spheres[i].material.emissionStrength;
 
         float dist = distance(lightPos, outData.position.xyz);
-
-        if (abs(dist - spheres[i].radius) < 0.1)
+        
+        if (abs(dist - spheres[i].radius) < 1.0)
         {
             result += lightColor;
             continue;

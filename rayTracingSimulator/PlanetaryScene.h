@@ -48,6 +48,8 @@ namespace ys
 		size_t ssboSphereSize;
 		void* spheresPointer;
 
+		GLuint uboRaytracingData;
+
 		glm::uvec2 screenSize;
 
 		unsigned int frameCount;

@@ -20,9 +20,11 @@ struct Ray
 struct Material
 {
 	vec4 color;             // 16
-	vec4 emittedColor;		// 16
+	vec4 emittedColor;		// 16=
 	float emissionStrength;	// 4	+ 12
-	float padding[3];
+	float smoothness;
+	float specularProbability;
+	int flag;
 };
 
 struct Sphere
@@ -130,28 +132,38 @@ vec3 Trace(Ray ray, inout uint rngState)
 		HitInfo hitInfo = CalculateRayCollision(ray);
 		if (hitInfo.isHit)
 		{
-			ray.origin = hitInfo.hitPoint;
-			ray.dir = normalize(hitInfo.normal + RandomDirection(rngState));
-
 			Material material = hitInfo.material;
+
+			if (material.flag != 1 && maxBounceCount == 0)
+			{
+				ray.origin = hitInfo.hitPoint + ray.dir * 0.01;
+				continue;
+			}
+
+			ray.origin = hitInfo.hitPoint;
+			vec3 diffuseDir = normalize(hitInfo.normal + RandomDirection(rngState));
+			vec3 specularDir = reflect(ray.dir, hitInfo.normal);
+			specularDir *= sign(dot(hitInfo.normal, specularDir));
+
+			bool isSpecularBounce = (material.specularProbability >= RandomValue(rngState));
+			ray.dir = mix(diffuseDir, specularDir, material.smoothness * int(isSpecularBounce));
+
 			vec3 emittedLight = (material.emittedColor * material.emissionStrength).xyz;
 			incomingLight += emittedLight * rayColor;
-			rayColor *= material.color.xyz;
+
+			rayColor *= mix(material.color.xyz, vec3(1.0f), isSpecularBounce);
 		}
 		else
 		{
-//			float skyGradienT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
-//			vec3 skyGradien = mix(vec3(205, 241, 252), vec3(116, 176, 255), skyGradienT);
-//			float sun = pow(max(0, dot(ray.dir, sunPosition.xyz)), sunFocus) * sunIntensity;
-//
-//			float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
-//			float sunMask = int(groundToSkyT >= 1);
-//			return mix(vec3(0.6, 0.3, 0.18), skyGradien, groundToSkyT) + sun * sunMask;
-//		
-//			or......
-//			
-//			cubemap texture?
+			float skyGradienT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
+			float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
 
+			vec3 skyGradien = mix(vec3(0.8, 0.94, 0.99), vec3(0.45, 0.69, 1.0), skyGradienT);
+			float sun = pow(max(0, dot(ray.dir, spheres[0].center)), 0.01f) * 0.1f;
+
+			vec3 environment = mix(vec3(0.6, 0.3, 0.18), skyGradien, groundToSkyT) + sun * int(groundToSkyT >= 1);
+
+			incomingLight += environment * rayColor;
 			break;
 		}
 	}
