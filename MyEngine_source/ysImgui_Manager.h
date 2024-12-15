@@ -1,5 +1,6 @@
 #pragma once
 #include "CommonInclude.h"
+#include "ysGameObject.h"
 
 
 namespace ys
@@ -57,10 +58,10 @@ namespace ys
 
 		static void SetFBO_Two(GLuint fboTexture);
 
-		static void SetObject(ys::GameObject* Game_Object);
+		static void SetObject(GameObject* Game_Object);
 
 		static glm::vec3 GenRayDir();
-		static float Check_Object(glm::vec3 rayDir, ys::GameObject* Game_Object);
+		static float Check_Object(glm::vec3 rayDir, GameObject* Game_Object);
 
 
 		// 레이 퍼 픽셀
@@ -73,7 +74,7 @@ namespace ys
 		// fov
 		static float Get_Fov() { return glm::radians(fov); }
 
-		static void Test_Object(ys::GameObject* Game_Object);
+		static void Test_Object(GameObject* Game_Object);
 
 		static GameObject* GetPickedObject() { return Object_Pointer; }
 
@@ -106,9 +107,9 @@ namespace ys
 		static int iPhongView_X;
 		static int iPhongView_Y;
 
-		static ys::GameObject* Main_Camera; // 카메라 행렬
+		static GameObject* Main_Camera; // 카메라 행렬
 
-		static ys::GameObject* Object_Pointer; // 선택한 객체 행렬
+		static GameObject* Object_Pointer; // 선택한 객체 행렬
 
 		static glm::vec3 CameraPos; // 현재 카메라 위치
 

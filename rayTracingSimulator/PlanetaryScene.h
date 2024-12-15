@@ -1,5 +1,6 @@
 #pragma once
 #include <ysScene.h>
+#include <ysSpriteRenderer.h>
 
 namespace ys
 {
@@ -9,7 +10,7 @@ namespace ys
 		{
 			glm::vec3 center;
 			float radius;
-			struct Material material;
+			Material material;
 		};
 
 	public:
