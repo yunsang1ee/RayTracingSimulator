@@ -11,6 +11,7 @@
 #include <iostream>
 #include <ysInputManager.h>
 
+
 extern ys::Application app;
 
 
@@ -41,12 +42,18 @@ void ys::PlanetaryScene::Init()
 		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 
+	// sky_box_texture
+	//Imgui_Manager::Get_Imgui_Manager()->Push_Sky_Box_Texture(Resources::Find<graphics::Texture>(L"Skybox_star"));
+
 	SetUpFBO(screenSize.x, screenSize.y);
 }
 
 void ys::PlanetaryScene::Update()
 {
 	Scene::Update();
+
+	if (InputManager::getKeyDown('o')) Imgui_Manager::Get_Imgui_Manager()->SetObject(nullptr);
+	if (InputManager::getKeyDown('m')) isMotionBlur = !isMotionBlur;
 
 	if (InputManager::getKeyDown(GLFW_KEY_ESCAPE))
 		glfwSetWindowShouldClose(app.getWindow(), GL_TRUE);
@@ -57,7 +64,7 @@ void ys::PlanetaryScene::LateUpdate()
 	auto prevCameraMatrix = renderer::mainCamera->GetmainViewMatrix();
 	Scene::LateUpdate();
 	auto cameraMatrix = renderer::mainCamera->GetmainViewMatrix();
-	if (prevCameraMatrix != cameraMatrix)
+	if (prevCameraMatrix != cameraMatrix && !isMotionBlur)
 		frameCount = 0;
 }
 
@@ -68,6 +75,16 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	
+	if (ys::InputManager::getKeyDown('b'))
+	{
+		if(Imgui_Manager::Get_Imgui_Manager()->GetPickedObject() != nullptr)
+			Imgui_Manager::Get_Imgui_Manager()->GetPickedObject()
+			->GetComponent<SpriteRenderer>()->GetMesh()
+			->DrawNodes(Imgui_Manager::Get_Imgui_Manager()->GetPickedObject()->GetComponent<SpriteRenderer>()->GetMesh()->Get_Root());
+	}
+
 
 	Scene::Render(hDC, -1);
 
@@ -246,7 +263,6 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 
 
 	frameCount++;
-	std::cout << frameCount << std::endl;
 	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO(phongTexture);
 	ys::Imgui_Manager::Get_Imgui_Manager()->SetFBO_Two(currentTexture);	
 }
@@ -392,15 +408,16 @@ void ys::PlanetaryScene::GenObject()
 	sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 	sp->SetObjectColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
-	auto scale = tr->GetScale();
-	spheresIndex.emplace(reinterpret_cast<uintptr_t>(mainObject), std::make_pair(false, spheres.size()));
-	spheres.emplace_back(Sphere{
-			tr->GetPosition()
-			, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
-			, sp->GetMaterial()
-		}
-	);
-}
+		auto scale = tr->GetScale();
+		spheresIndex.emplace(reinterpret_cast<uintptr_t>(mainObject), std::make_pair(false, spheres.size()));
+		spheres.emplace_back(Sphere{
+				tr->GetPosition()
+				, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
+				, sp->GetMaterial()
+			}
+		);
+	}
+
 
 void ys::PlanetaryScene::UpdateSSBO()
 {

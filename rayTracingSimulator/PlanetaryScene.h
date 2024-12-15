@@ -51,6 +51,7 @@ namespace ys
 		glm::uvec2 screenSize;
 
 		unsigned int frameCount;
+		bool isMotionBlur;
 	};
 }
 

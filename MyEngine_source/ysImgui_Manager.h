@@ -116,6 +116,7 @@ namespace ys
 
 		// 픽셀당 레이 수
 		static UINT rayPerPixel;
+		static UINT Dispath;
 		static UINT maxBounceCount;
 		static UINT delay;
 
