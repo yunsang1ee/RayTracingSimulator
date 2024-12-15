@@ -51,20 +51,20 @@
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\gizmo\GraphEditor.cpp">
-      <Filter>Imguizmo</Filter>
+    <ClCompile Include="..\include\GraphEditor.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\gizmo\ImCurveEdit.cpp">
-      <Filter>Imguizmo</Filter>
+    <ClCompile Include="..\include\ImCurveEdit.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\gizmo\ImGradient.cpp">
-      <Filter>Imguizmo</Filter>
+    <ClCompile Include="..\include\ImGradient.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\gizmo\ImGuizmo.cpp">
-      <Filter>Imguizmo</Filter>
+    <ClCompile Include="..\include\ImGuizmo.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\gizmo\ImSequencer.cpp">
-      <Filter>Imguizmo</Filter>
+    <ClCompile Include="..\include\ImSequencer.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -77,23 +77,23 @@
     <ClInclude Include="ResourceLoad.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\gizmo\GraphEditor.h">
-      <Filter>Imguizmo</Filter>
+    <ClInclude Include="..\include\GraphEditor.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\gizmo\ImCurveEdit.h">
-      <Filter>Imguizmo</Filter>
+    <ClInclude Include="..\include\ImCurveEdit.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\gizmo\ImGradient.h">
-      <Filter>Imguizmo</Filter>
+    <ClInclude Include="..\include\ImGradient.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\gizmo\ImGuizmo.h">
-      <Filter>Imguizmo</Filter>
+    <ClInclude Include="..\include\ImGuizmo.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\gizmo\ImSequencer.h">
-      <Filter>Imguizmo</Filter>
+    <ClInclude Include="..\include\ImSequencer.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\gizmo\ImZoomSlider.h">
-      <Filter>Imguizmo</Filter>
+    <ClInclude Include="..\include\ImZoomSlider.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
