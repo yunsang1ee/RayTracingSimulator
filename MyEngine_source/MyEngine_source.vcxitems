@@ -19,7 +19,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ysGraphics.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysAbsoluteScene.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)YSapplication.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)ysBoxCollider2D.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysBVH.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysCamera.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysCircleCollider2D.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ysCollider.h" />
@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)ysAbsoluteScene.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)ysBoxCollider2D.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysBVH.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ysCamera.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ysCircleCollider2D.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ysCollider.cpp" />

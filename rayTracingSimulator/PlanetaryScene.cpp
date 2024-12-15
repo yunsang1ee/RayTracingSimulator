@@ -79,10 +79,9 @@ void ys::PlanetaryScene::PhongRender(HDC hDC, const int& index)
 	
 	if (ys::InputManager::getKeyDown('b'))
 	{
-		if(Imgui_Manager::Get_Imgui_Manager()->GetPickedObject() != nullptr)
+		if (Imgui_Manager::Get_Imgui_Manager()->GetPickedObject() != nullptr)
 			Imgui_Manager::Get_Imgui_Manager()->GetPickedObject()
-			->GetComponent<SpriteRenderer>()->GetMesh()
-			->DrawNodes(Imgui_Manager::Get_Imgui_Manager()->GetPickedObject()->GetComponent<SpriteRenderer>()->GetMesh()->Get_Root());
+			->GetComponent<SpriteRenderer>()->GetMesh()->GetBVH().DrawNodes();
 	}
 
 

@@ -17,7 +17,7 @@ void ys::ResourceLoad()
 	Resources::Load<graphics::Shader>(L"test", L"test,VS,FS");
 	Resources::Load<graphics::Shader>(L"phong", L"phong,VS,FS");
 	Resources::Load<graphics::Shader>(L"vc", L"vc,VS,FS");
-	Resources::Load<Mesh>(L"Cube", L"Cube");
+	//Resources::Load<Mesh>(L"Cube", L"Cube");
 	Resources::Load<Mesh>(L"Sphere", L"Sphere");
 	//Resources::Load<Mesh>(L"Bunny", L"stanford-bunny");
 	//Resources::Load<Mesh>(L"Dragon", L"stanford-dragon");
