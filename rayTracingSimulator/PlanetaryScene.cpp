@@ -195,6 +195,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 			unsigned int screenSizeLoc = glGetUniformLocation(shader->GetShaderID(), "screenSize");
 			unsigned int numRenderedFrameLoc = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
 			unsigned int rayPerPixelLoc = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
+			unsigned int isInvironmentLoc = glGetUniformLocation(shader->GetShaderID(), "isInvironment");
 
 			glUniformMatrix4fv(invProjectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
 			glUniformMatrix4fv(invViewMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainViewMatrix())));
@@ -204,6 +205,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 			glUniform2uiv(screenSizeLoc, 1, glm::value_ptr(screenSize));
 			glUniform1ui(numRenderedFrameLoc, frameCount);
 			glUniform1ui(rayPerPixelLoc, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
+			glUniform1ui(isInvironmentLoc, Imgui_Manager::Get_Imgui_Manager()->IsInvironmet());
 
 			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(graphics::Vertex), (void*)offsetof(graphics::Vertex, position));

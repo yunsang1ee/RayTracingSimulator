@@ -68,6 +68,7 @@ namespace ys
 		static UINT Get_MaxBounceCount() { return maxBounceCount; }
 		static UINT Get_Delay() { return delay; }
 		static UINT Get_Dispatch() { return dispatch; }
+		static bool IsInvironmet() { return isInvironment; }
 
 		// fov
 		static float Get_Fov() { return glm::radians(fov); }
@@ -118,6 +119,7 @@ namespace ys
 		// 픽셀당 레이 수
 		static UINT rayPerPixel;
 		static UINT dispatch;
+		static bool isInvironment;
 		static UINT maxBounceCount;
 		static UINT delay;
 

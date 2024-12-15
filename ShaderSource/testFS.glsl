@@ -8,6 +8,7 @@ uniform uint maxBounceCount;
 uniform uvec2 screenSize;
 uniform uint numRenderedFrame;
 uniform uint rayPerPixel;
+uniform bool isInvironment;
 
 out vec4 FragColor;
 
@@ -54,6 +55,13 @@ float RandomValue(inout uint state)
 	uint result = ((state >> ((state >> 28) + 4)) ^ state) * 277803737;
 	result = (result >> 22) ^ result;
 	return result / 4294967295.0;
+}
+
+vec2 RandomPointInCircle(inout uint state)
+{
+	float angle = RandomValue(state) * 2 * 3.141592;
+	vec2 pointOnCircle = vec2(cos(angle), sin(angle));
+	return pointOnCircle * sqrt(RandomValue(state));
 }
 
 float RandomValueNormalDistribution(inout uint state) // Box-Muller transform
@@ -134,12 +142,6 @@ vec3 Trace(Ray ray, inout uint rngState)
 		{
 			Material material = hitInfo.material;
 
-			if (material.flag != 1 && maxBounceCount == 0)
-			{
-				ray.origin = hitInfo.hitPoint + ray.dir * 0.01;
-				continue;
-			}
-
 			ray.origin = hitInfo.hitPoint;
 			vec3 diffuseDir = normalize(hitInfo.normal + RandomDirection(rngState));
 			vec3 specularDir = reflect(ray.dir, hitInfo.normal);
@@ -155,15 +157,18 @@ vec3 Trace(Ray ray, inout uint rngState)
 		}
 		else
 		{
-			float skyGradienT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
-			float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
+			if (isInvironment)
+			{
+				float skyGradienT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
+				float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
 
-			vec3 skyGradien = mix(vec3(0.8, 0.94, 0.99), vec3(0.45, 0.69, 1.0), skyGradienT);
-			float sun = pow(max(0, dot(ray.dir, spheres[0].center)), 0.01f) * 0.1f;
+				vec3 skyGradien = mix(vec3(0.8, 0.94, 0.99), vec3(0.45, 0.69, 1.0), skyGradienT);
+				float sun = pow(max(0, dot(ray.dir, spheres[0].center)), 0.01f) * 0.1f;
 
-			vec3 environment = mix(vec3(0.6, 0.3, 0.18), skyGradien, groundToSkyT) + sun * int(groundToSkyT >= 1);
+				vec3 environment = mix(vec3(0.6, 0.3, 0.18), skyGradien, groundToSkyT) + sun * int(groundToSkyT >= 1);
 
-			incomingLight += environment * rayColor;
+				incomingLight += environment * rayColor;
+			}
 			break;
 		}
 	}
@@ -186,10 +191,6 @@ void main()
 	// 뷰 공간을 월드 공간으로 변환
 	vec3 worldSpace = (invViewMatrix * vec4(viewSpace.xyz,1.0)).xyz;
 
-	Ray ray;
-	ray.origin = viewPosition;
-	ray.dir = normalize(worldSpace - ray.origin);
-
 	
 	// 구체 교차 검사
 	uvec2 numPixel = screenSize;
@@ -202,6 +203,11 @@ void main()
 
 	for(int rayCount = 0; rayCount < rayPerPixel; ++rayCount)
 	{
+		Ray ray;
+		ray.origin = viewPosition;
+		vec2 jit = RandomPointInCircle(rngState);
+		ray.dir = normalize(worldSpace - ray.origin);
+
 		total += Trace(ray, rngState);
 	}
 

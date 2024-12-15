@@ -33,6 +33,7 @@ bool ys::Imgui_Manager::isObjectScreenHovered = false;
 
 UINT ys::Imgui_Manager::rayPerPixel = 1;
 UINT ys::Imgui_Manager::dispatch = 8;
+bool ys::Imgui_Manager::isInvironment = false;
 UINT ys::Imgui_Manager::maxBounceCount = 1;
 UINT ys::Imgui_Manager::delay = 1;
 
@@ -149,6 +150,11 @@ void ys::Imgui_Manager::Render()
 
 
 	// 선택할 변수 
+
+	static bool invironment = isInvironment; // 라디오 버튼 추가 
+	ImGui::Checkbox("isInvironment", &invironment);
+	isInvironment = invironment;
+
 	ImGui::Text("");
 	ImGui::Text("Dispath");
 	static int dispath = dispatch; // 라디오 버튼 추가 
