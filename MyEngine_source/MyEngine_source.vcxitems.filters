@@ -50,7 +50,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ysCircleCollider2D.cpp">
       <Filter>Component\Collider</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)ysBoxCollider2D.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)ysBVH.cpp">
       <Filter>Component\Collider</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)ysCollisionManager.cpp">
@@ -134,7 +134,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ysCircleCollider2D.h">
       <Filter>Component\Collider</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ysBoxCollider2D.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)ysBVH.h">
       <Filter>Component\Collider</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ysCollisionManager.h">

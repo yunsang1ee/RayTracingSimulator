@@ -18,7 +18,6 @@ ys::Mesh::Mesh()
 
 ys::Mesh::~Mesh()
 {
-	FreeNodes(Root);
 }
 
 HRESULT ys::Mesh::Load(const std::wstring& path)
@@ -97,7 +96,7 @@ HRESULT ys::Mesh::Load(const std::wstring& path)
 	CreateEB(indices);
 
 	// BVH 정렬
-	Input_BVH(vertices, indices);
+	BVH.Input_BVH(vertices, indices);
 
 	return S_OK;
 }
@@ -132,128 +131,3 @@ void ys::Mesh::UnBind()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void ys::Mesh::Input_BVH(std::vector<graphics::Vertex>& vertices, std::vector<unsigned int>& indices)
-{
-
-	BoundingBox BVH{};
-
-	for (int i =0; i < vertices.size(); ++ i)
-	{
-		BVH.GrowToInclude(vertices[i].position);
-	}
-
-	std::vector<BVHTriangle> triangles{};
-
-	for (int i = 0; i < indices.size(); ++i)
-	{
-		// 0
-		graphics::Vertex a = vertices[indices[i++]];
-		// 1
-		graphics::Vertex b = vertices[indices[i++]];
-		// 2
-		graphics::Vertex c = vertices[indices[i]];
-
-		glm::vec3 center = glm::vec3((a.position + b.position + c.position) / 3.f);
-
-		triangles.push_back(BVHTriangle(a,b,c,center));
-	}
-
-
-	Root->Triangles = triangles;
-	Root->BVH = BVH;
-
-	Split(Root);
-}
-
-void ys::Mesh::Split(Node* parent, int depth)
-{
-	if (parent->Triangles.size() <= MAX_BVH_TRIANGLE_NUM)
-	{
-		return;
-	}
-
-	glm::vec3 Size = parent->BVH.Size;
-	int splitAxis = Size.x > glm::max(Size.y, Size.z) ? 0 : Size.y > Size.z ? 1 : 2;
-
-	float BVH_Center = parent->BVH.Center[splitAxis];
-
-
-
-	for (int i = 0; i < parent->Triangles.size(); ++i)
-	{
-
-		// 부모의 바운딩볼륨 중심보다 작은지 판단?
-		bool inA = parent->Triangles[i].Center[splitAxis] < BVH_Center;
-
-		if (inA) // 부모의 바운딩볼륨 중심보다 작다면?
-		{
-			if (parent->ChildA == nullptr)
-			{
-				parent->ChildA = new Node{};
-				AllNode.push_back(parent->ChildA);
-			}
-
-			// A 그룹으로 들어가기
-			parent->ChildA->Triangles.push_back(parent->Triangles[i]);
-			parent->ChildA->BVH.GrowToInclude(parent->Triangles[i]);
-		}
-		else
-		{
-			if (parent->ChildB == nullptr)
-			{
-				parent->ChildB = new Node{};
-				AllNode.push_back(parent->ChildB);
-			}
-
-			// B 그룹으로 들어가기
-			parent->ChildB->Triangles.push_back(parent->Triangles[i]);
-			parent->ChildB->BVH.GrowToInclude(parent->Triangles[i]);
-		}
-
-	}
-
-	// 우히히
-	if (parent->ChildA != nullptr)
-	{
-		Split(parent->ChildA, depth + 1);
-	}
-	if (parent->ChildB != nullptr)
-	{
-		Split(parent->ChildB, depth + 1);
-	}
-}
-
-void ys::Mesh::DrawNodes(Node* node, int depth)
-{
-	// 테스트용 렌더에서 호출함
-
-	if (node == nullptr)
-	{
-		return;
-	}
-
-	std::cout << "depth" << depth << std::endl;
-
-	std::cout << "triangle Num : " << node->Triangles.size() << std::endl;
-
-	std::cout << "BV_size : " << node->BVH.Size.x << ", " << node->BVH.Size.y << ", " << node->BVH.Size.z << std::endl;
-
-	
-
-	DrawNodes(node->ChildA, depth + 1);
-
-	DrawNodes(node->ChildB, depth + 1);
-
-}
-
-
-void ys::Mesh::FreeNodes(Node* node)
-{
-	if (node == nullptr)
-	{
-		return;
-	} 
-	FreeNodes(node->ChildA); 
-	FreeNodes(node->ChildB); 
-	delete node; // 동적으로 할당된 노드 메모리 해제
-}
