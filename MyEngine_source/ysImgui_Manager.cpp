@@ -32,7 +32,7 @@ bool ys::Imgui_Manager::isObjectScreenHovered = false;
 
 
 UINT ys::Imgui_Manager::rayPerPixel = 1;
-UINT ys::Imgui_Manager::dispatch = 8;
+UINT ys::Imgui_Manager::dispatch = 16;
 bool ys::Imgui_Manager::isInvironment = false;
 UINT ys::Imgui_Manager::maxBounceCount = 1;
 UINT ys::Imgui_Manager::delay = 1;

@@ -32,7 +32,7 @@ namespace ys::graphics
 		{
 			if (isComputeShader)
 			{
-				glm::uvec2 dispatchCommand;
+				glm::uvec2 dispatchCommand{};
 				switch (mode) 
 				{
 				case DispatchMode::dispatch8x8x1: 
@@ -48,6 +48,7 @@ namespace ys::graphics
 					dispatchCommand.y = (GLuint)ceil(screenSize.y / 32.0);
 					break;
 				}
+				glMemoryBarrier(GL_ALL_BARRIER_BITS);
 				glDispatchCompute(dispatchCommand.x, dispatchCommand.y, 1);
 				glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			}

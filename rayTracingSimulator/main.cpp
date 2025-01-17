@@ -27,6 +27,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPositionCallback(GLFWwindow* window, double xPos, double yPos);
 
+void MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	printf("GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+}
+
 #define CURRENT_SCENE ys::ShaderScene
 
 int main(int argc, char** argv)
@@ -111,6 +116,9 @@ int main(int argc, char** argv)
 	glViewport(0, 0, kWidth, kHight);
 	glEnable(GL_DEPTH_TEST); glDepthMask(GL_TRUE); glClearDepth(1.0f);
 	glEnable(GL_CULL_FACE);      
+	glEnable(GL_DEBUG_OUTPUT);
+
+	glDebugMessageCallback(MessageCallback, 0);
 
 	//set Scene
 	ys::SceneManager::CreateScene<ys::PlanetaryScene>(std::wstring(L"mainScene"));// issue

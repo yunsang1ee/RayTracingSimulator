@@ -182,11 +182,11 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 		auto shader = ys::Resources::Find<graphics::Shader>(L"test");
 		shader->Bind();
 		glBindVertexArray(VAO);
 		{
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 			unsigned int invProjectionMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invProjectionMatrix");
 			unsigned int invViewMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix");
 			unsigned int viewPositionLoc = glGetUniformLocation(shader->GetShaderID(), "viewPosition");
@@ -223,8 +223,9 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	{
 		auto shader = Resources::Find<graphics::Shader>(L"raytracing" + std::to_wstring(Imgui_Manager::Get_Imgui_Manager()->Get_Dispatch()));
 		shader->Bind();
-		glBindImageTexture(1, currentTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-		glClearTexImage(currentTexture, 0, GL_RGBA, GL_UNSIGNED_INT, glm::value_ptr(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)));
+		glBindImageTexture(0, currentTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+		glClearTexImage(currentTexture, 0, GL_RGBA, GL_FLOAT, glm::value_ptr(glm::uvec4(1, 0, 0, 1)));
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssboSphere);
 
 		unsigned int invProjectionMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invProjectionMatrix");
 		unsigned int invViewMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix");
@@ -234,6 +235,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		unsigned int screenSizeLoc = glGetUniformLocation(shader->GetShaderID(), "screenSize");
 		unsigned int numRenderedFrameLoc = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
 		unsigned int rayPerPixelLoc = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
+		unsigned int isInvironmentLoc = glGetUniformLocation(shader->GetShaderID(), "isInvironment");
 
 		glUniformMatrix4fv(invProjectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
 		glUniformMatrix4fv(invViewMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainViewMatrix())));
@@ -243,14 +245,15 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		glUniform2uiv(screenSizeLoc, 1, glm::value_ptr(screenSize));
 		glUniform1ui(numRenderedFrameLoc, frameCount);
 		glUniform1ui(rayPerPixelLoc, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
-
+		glUniform1ui(isInvironmentLoc, Imgui_Manager::Get_Imgui_Manager()->IsInvironmet());
+		
 		if (dispatch == 8)
 			shader->DispatchCompute(glm::vec2(1920, 1080), graphics::Shader::DispatchMode::dispatch8x8x1);
 		else if (dispatch == 16)
 			shader->DispatchCompute(glm::vec2(1920, 1080), graphics::Shader::DispatchMode::dispatch16x16x1);
 		else if (dispatch == 32)
 			shader->DispatchCompute(glm::vec2(1920, 1080), graphics::Shader::DispatchMode::dispatch32x32x1);
-
+		// --------------------------------- OK ---------------------------------
 		glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, currentTexture, 0);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
@@ -258,10 +261,12 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 
 		shader = Resources::Find<graphics::Shader>(L"renderTexture");
 		shader->Bind();
-		GLint textureLocation = glGetUniformLocation(shader->GetShaderID(), "textureSampler");
+		GLint textureLoc = glGetUniformLocation(shader->GetShaderID(), "textureSampler");
+		GLint viewSizeLoc = glGetUniformLocation(shader->GetShaderID(), "viewSize");
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, currentTexture);
-		glUniform1i(textureLocation, 0);
+		glUniform1i(textureLoc, 0);
+		glUniform2fv(viewSizeLoc, 1, glm::value_ptr(glm::vec2(this->screenSize)));
 
 		glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
@@ -274,6 +279,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		glEnableVertexAttribArray(2);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		// ----------------------------------------------------------------------
 	}
 	if (frameCount == 0)
 		glCopyImageSubData(phongTexture, GL_TEXTURE_2D, 0, 0, 0, 0, 
@@ -301,7 +307,6 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	
 	glUniform2uiv(viewSize, 1, glm::value_ptr(this->screenSize));
 
-	//glUniform1ui(mixNumRenderedFrame, );
 	glUniform1f(mixNumRenderedFrame, this->frameCount / (float)Imgui_Manager::Get_Imgui_Manager()->Get_Delay());
 
 
@@ -309,7 +314,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	mixShader->Unbind();
 
 	glBindTexture(GL_TEXTURE_2D, previousTexture);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, 1920, 1080, 0);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 0, 0, 1920, 1080, 0);
 
 
 	frameCount++;
@@ -344,19 +349,19 @@ void ys::PlanetaryScene::SetUpFBO(int iX, int iY)
 
 	glGenTextures(1, &currentTexture);
 	glBindTexture(GL_TEXTURE_2D, currentTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, iX, iY, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glGenTextures(1, &previousTexture);
 	glBindTexture(GL_TEXTURE_2D, previousTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, iX, iY, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glGenTextures(1, &phongTexture);
 	glBindTexture(GL_TEXTURE_2D, phongTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, iX, iY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, iX, iY, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
@@ -492,7 +497,7 @@ void ys::PlanetaryScene::GenObject()
 	}
 
 
-void ys::PlanetaryScene::UpdateSSBO()
+void ys::PlanetaryScene::UpdateSSBO() // OK??
 {
 	for (auto& [key, value] : spheresIndex)
 	{

@@ -1,4 +1,5 @@
 #version 460 core
+
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 uniform mat4 invProjectionMatrix;
@@ -9,6 +10,7 @@ uniform uint maxBounceCount;
 uniform uvec2 screenSize;
 uniform uint numRenderedFrame;
 uniform uint rayPerPixel;
+uniform bool isInvironment;
 
 struct Ray
 {
@@ -19,7 +21,7 @@ struct Ray
 struct Material
 {
 	vec4 color;             // 16
-	vec4 emittedColor;		// 16=
+	vec4 emittedColor;		// 16
 	float emissionStrength;	// 4	+ 12
 	float smoothness;
 	float specularProbability;
@@ -42,12 +44,12 @@ struct HitInfo
 	Material material;
 };
 
-layout(std430, binding = 0) buffer Spheres // std430 -> float = 4byte, vec3 = 12byte, vec4 = 16byte
+layout (rgba32f, binding = 0) uniform image2D outputImage;
+layout (std430, binding = 1) buffer Spheres // std430 -> float = 4byte, vec3 = 12byte, vec4 = 16byte
 {
 	Sphere spheres[];
 };
 
-layout (rgba8, binding = 1) uniform image2D outputImage;
 
 float RandomValue(inout uint state)
 {
@@ -55,6 +57,13 @@ float RandomValue(inout uint state)
 	uint result = ((state >> ((state >> 28) + 4)) ^ state) * 277803737;
 	result = (result >> 22) ^ result;
 	return result / 4294967295.0;
+}
+
+vec2 RandomPointInCircle(inout uint state)
+{
+	float angle = RandomValue(state) * 2 * 3.141592;
+	vec2 pointOnCircle = vec2(cos(angle), sin(angle));
+	return pointOnCircle * sqrt(RandomValue(state));
 }
 
 float RandomValueNormalDistribution(inout uint state) // Box-Muller transform
@@ -107,6 +116,7 @@ HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius)
 HitInfo CalculateRayCollision(Ray ray)
 {
 	HitInfo closestHit;
+	closestHit.isHit = false;
 	closestHit.dist = 1.0f / 0.0f; //INF
 
 	for (int i = 0; i < spheres.length(); ++i)
@@ -127,13 +137,13 @@ vec3 Trace(Ray ray, inout uint rngState)
 {
 	vec3 incomingLight = vec3(0.0f);
 	vec3 rayColor = vec3(1.0f);
-	
+
 	for (int i = 0; i <= maxBounceCount; ++i)
 	{
 		HitInfo hitInfo = CalculateRayCollision(ray);
-		Material material = hitInfo.material;
 		if (hitInfo.isHit)
 		{
+			Material material = hitInfo.material;
 			ray.origin = hitInfo.hitPoint;
 			vec3 diffuseDir = normalize(hitInfo.normal + RandomDirection(rngState));
 			vec3 specularDir = reflect(ray.dir, hitInfo.normal);
@@ -145,62 +155,62 @@ vec3 Trace(Ray ray, inout uint rngState)
 			vec3 emittedLight = (material.emittedColor * material.emissionStrength).xyz;
 			incomingLight += emittedLight * rayColor;
 
-			rayColor *= mix(material.color.xyz, rayColor, isSpecularBounce);
+			rayColor *= mix(material.color.xyz, vec3(1.0f), isSpecularBounce);
 		}
 		else
 		{
-			float skyGradienT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
-			vec3 skyGradien = mix(vec3(0.8, 0.94, 0.99), vec3(0.45, 0.69, 1.0), skyGradienT);
-			float sun = pow(max(0, dot(ray.dir, spheres[0].center)), 0.3f) * 1.0f;
+			if (isInvironment)
+			{
+				float skyGradienT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
+				float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
 
-			float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
-			float sunMask = int(groundToSkyT >= 1);
-			vec3 environment = mix(vec3(0.6, 0.3, 0.18), skyGradien, groundToSkyT) + sun * sunMask;
+				vec3 skyGradien = mix(vec3(0.8, 0.94, 0.99), vec3(0.45, 0.69, 1.0), skyGradienT);
+				float sun = pow(max(0, dot(ray.dir, spheres[0].center)), 0.01f) * 0.1f;
 
-			incomingLight += environment * rayColor;
-			rayColor += environment;
+				vec3 environment = mix(vec3(0.6, 0.3, 0.18), skyGradien, groundToSkyT) + sun * int(groundToSkyT >= 1);
+
+				incomingLight += environment * rayColor;
+			}
 			break;
 		}
 	}
-
+	
 	return incomingLight;
 }
 
 void main()
 {
+
 	// 화면 좌표를 클립 공간으로 변환
 	vec4 clipSpace = vec4((gl_GlobalInvocationID.xy / viewportSize * 2.0f - 1.0f), 1.0f, 1.0f); // ?
-	
 	// 클립 공간을 뷰 공간으로 변환
 	vec4 viewSpace = invProjectionMatrix * clipSpace;
 
 	viewSpace /= viewSpace.w;
 
-	//viewSpace = vec4(viewSpace.xy, -1.0f, 0.0f);
-	
 	// 뷰 공간을 월드 공간으로 변환
 	vec3 worldSpace = (invViewMatrix * vec4(viewSpace.xyz,1.0)).xyz;
 
-	Ray ray;
-	ray.origin = viewPosition;
-	ray.dir = normalize(worldSpace - ray.origin);
-
-	
 	// 구체 교차 검사
 	uvec2 numPixel = screenSize;
 	uvec2 pixelCoord = uvec2(gl_GlobalInvocationID.xy);
 	uint pixelIndex = (pixelCoord.y * numPixel.x + pixelCoord.x);
 
 	uint rngState = pixelIndex + numRenderedFrame * 925904;
-	
+		
 	vec3 total = vec3(0.0f);
 
 	for(int rayCount = 0; rayCount < rayPerPixel; ++rayCount)
 	{
+		Ray ray;
+		ray.origin = viewPosition;
+		vec2 jit = RandomPointInCircle(rngState);
+		ray.dir = normalize(worldSpace - ray.origin);
+
 		total += Trace(ray, rngState);
 	}
 
 	total /= rayPerPixel;
 
-	imageStore(outputImage, ivec2(pixelCoord), vec4(total, 1.0f));
+	imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), vec4(total, 1.0f));//OK
 }

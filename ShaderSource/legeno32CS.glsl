@@ -9,6 +9,7 @@ uniform uint maxBounceCount;
 uniform uvec2 screenSize;
 uniform uint numRenderedFrame;
 uniform uint rayPerPixel;
+uniform bool isInvironment;
 
 struct Ray
 {
@@ -42,12 +43,12 @@ struct HitInfo
 	Material material;
 };
 
-layout(std430, binding = 0) buffer Spheres // std430 -> float = 4byte, vec3 = 12byte, vec4 = 16byte
+layout(std430, binding = 1) buffer Spheres // std430 -> float = 4byte, vec3 = 12byte, vec4 = 16byte
 {
 	Sphere spheres[];
 };
 
-layout (rgba8, binding = 1) uniform image2D outputImage;
+layout (rgba32f, binding = 0) uniform image2D outputImage;
 
 float RandomValue(inout uint state)
 {
@@ -107,6 +108,7 @@ HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius)
 HitInfo CalculateRayCollision(Ray ray)
 {
 	HitInfo closestHit;
+	closestHit.isHit = false;
 	closestHit.dist = 1.0f / 0.0f; //INF
 
 	for (int i = 0; i < spheres.length(); ++i)
@@ -149,16 +151,19 @@ vec3 Trace(Ray ray, inout uint rngState)
 		}
 		else
 		{
-			float skyGradienT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
-			vec3 skyGradien = mix(vec3(0.8, 0.94, 0.99), vec3(0.45, 0.69, 1.0), skyGradienT);
-			float sun = pow(max(0, dot(ray.dir, spheres[0].center)), 0.3f) * 1.0f;
+			if (isInvironment)
+			{
+				float skyGradienT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
+				vec3 skyGradien = mix(vec3(0.8, 0.94, 0.99), vec3(0.45, 0.69, 1.0), skyGradienT);
+				float sun = pow(max(0, dot(ray.dir, spheres[0].center)), 0.3f) * 1.0f;
 
-			float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
-			float sunMask = int(groundToSkyT >= 1);
-			vec3 environment = mix(vec3(0.6, 0.3, 0.18), skyGradien, groundToSkyT) + sun * sunMask;
+				float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
+				float sunMask = int(groundToSkyT >= 1);
+				vec3 environment = mix(vec3(0.6, 0.3, 0.18), skyGradien, groundToSkyT) + sun * sunMask;
 
-			incomingLight += environment * rayColor;
-			rayColor += environment;
+				incomingLight += environment * rayColor;
+				rayColor += environment;
+			}
 			break;
 		}
 	}
