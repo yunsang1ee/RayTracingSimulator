@@ -1,7 +1,8 @@
 #pragma once
 #include "ysCollider.h"
 #include <ysGraphics.h>
-#define MAX_BVH_TRIANGLE_NUM 50
+constexpr uint32_t kLeafMax = 12;
+constexpr uint32_t kInvalid = std::numeric_limits<uint32_t>::max();
 
 namespace ys
 {
@@ -25,16 +26,19 @@ namespace ys
 		{
 			glm::vec3 Min = glm::vec3(1.f) * std::numeric_limits<float>::infinity();
 			glm::vec3 Max = glm::vec3(1.f) * -std::numeric_limits<float>::infinity();
-			glm::vec3 Center = (Min + Max) * 0.5f;
-			glm::vec3 Size = abs(Max - Min) / 2.f; // 이거 나중에 생각해봐야 할듯
+			glm::vec3 Center = {};
+			glm::vec3 HalfExtent = {};
 
-
-			void GrowToInclude(glm::vec3 point)
+			void Recalc()
 			{
-				Min = glm::min(Min, point);
-				Max = glm::max(Max, point);
 				Center = (Min + Max) * 0.5f;
-				Size = abs(Max - Min) / 2.f;
+				HalfExtent = glm::abs(Max - Min) * 0.5f;
+			}
+
+			void GrowToInclude(const glm::vec3& p)
+			{
+				Min = glm::min(Min, p);
+				Max = glm::max(Max, p);
 			}
 
 			void GrowToInclude(Triangle triangle)
@@ -47,16 +51,17 @@ namespace ys
 
 		struct Node
 		{
-			BoundingBox BVH{};
-			UINT TriangleIndex{}; // 삼각형이 시작되는 인덱스?
-			UINT TriangleCount{}; // 삼각형을 몇 개 가지고 있는지?
-			UINT ChildIndex{}; // 자식
+			BoundingBox Box{};
+			uint32_t TriangleIndex{}; // 삼각형이 시작되는 인덱스?
+			uint32_t TriangleCount{}; // 삼각형을 몇 개 가지고 있는지?
+			uint32_t ChildIndex{ kInvalid }; // 자식
+			// 오른자식은 ChildIndex+1
 		};
 
 
 		void Input_BVH(std::vector<graphics::Vertex>& vertices, std::vector<unsigned int>& indices);
 
-		void Split(UINT parent, int depth = 0);
+		void Split(uint32_t parent, int depth);
 
 		Node Get_Root() { return Root; }
 
@@ -66,6 +71,9 @@ namespace ys
 		virtual void Render(HDC hDC);
 
 		void DrawNodes(UINT node = 0, int depth = 0);
+
+		std::vector<graphics::GPUBVHNode> ConvertToGPUNodes() const;
+		std::vector<graphics::PackedVertex> GetTriangleVertices() const;
 
 	private:
 
@@ -77,7 +85,6 @@ namespace ys
 
 
 		std::vector<Triangle> AllTriangle{};
-
 	};
 }
 

@@ -19,7 +19,7 @@ Index of this file:
 // [SECTION] Widgets: TreeNode, CollapsingHeader, etc.
 // [SECTION] Widgets: Selectable
 // [SECTION] Widgets: Typing-Select support
-// [SECTION] Widgets: Box-Select support
+// [SECTION] Widgets: BVH-Select support
 // [SECTION] Widgets: Multi-Select support
 // [SECTION] Widgets: Multi-Select helpers
 // [SECTION] Widgets: ListBox
@@ -7259,7 +7259,7 @@ void ImGui::DebugNodeTypingSelectState(ImGuiTypingSelectState* data)
 }
 
 //-------------------------------------------------------------------------
-// [SECTION] Widgets: Box-Select support
+// [SECTION] Widgets: BVH-Select support
 // This has been extracted away from Multi-Select logic in the hope that it could eventually be used elsewhere, but hasn't been yet.
 //-------------------------------------------------------------------------
 // Extra logic in MultiSelectItemFooter() and ImGuiListClipper::Step()
@@ -7362,14 +7362,14 @@ bool ImGui::BeginBoxSelect(const ImRect& scope_rect, ImGuiWindow* window, ImGuiI
     ImVec2 start_pos_abs = WindowPosRelToAbs(window, bs->StartPosRel);
     ImVec2 prev_end_pos_abs = WindowPosRelToAbs(window, bs->EndPosRel); // Clamped already
     ImVec2 curr_end_pos_abs = g.IO.MousePos;
-    if (ms_flags & ImGuiMultiSelectFlags_ScopeWindow) // Box-select scrolling only happens with ScopeWindow
+    if (ms_flags & ImGuiMultiSelectFlags_ScopeWindow) // BVH-select scrolling only happens with ScopeWindow
         curr_end_pos_abs = ImClamp(curr_end_pos_abs, scope_rect.Min, scope_rect.Max);
     bs->BoxSelectRectPrev.Min = ImMin(start_pos_abs, prev_end_pos_abs);
     bs->BoxSelectRectPrev.Max = ImMax(start_pos_abs, prev_end_pos_abs);
     bs->BoxSelectRectCurr.Min = ImMin(start_pos_abs, curr_end_pos_abs);
     bs->BoxSelectRectCurr.Max = ImMax(start_pos_abs, curr_end_pos_abs);
 
-    // Box-select 2D mode detects horizontal changes (vertical ones are already picked by Clipper)
+    // BVH-select 2D mode detects horizontal changes (vertical ones are already picked by Clipper)
     // Storing an extra rect used by widgets supporting box-select.
     if (ms_flags & ImGuiMultiSelectFlags_BoxSelect2d)
         if (bs->BoxSelectRectPrev.Min.x != bs->BoxSelectRectCurr.Min.x || bs->BoxSelectRectPrev.Max.x != bs->BoxSelectRectCurr.Max.x)
@@ -7534,7 +7534,7 @@ ImGuiMultiSelectIO* ImGui::BeginMultiSelect(ImGuiMultiSelectFlags flags, int sel
             request_clear = true;
     }
 
-    // Box-select handling: update active state.
+    // BVH-select handling: update active state.
     ImGuiBoxSelectState* bs = &g.BoxSelectState;
     if (flags & (ImGuiMultiSelectFlags_BoxSelect1d | ImGuiMultiSelectFlags_BoxSelect2d))
     {
@@ -7547,7 +7547,7 @@ ImGuiMultiSelectIO* ImGui::BeginMultiSelect(ImGuiMultiSelectFlags flags, int sel
     {
         // Shortcut: Clear selection (Escape)
         // - Only claim shortcut if selection is not empty, allowing further presses on Escape to e.g. leave current child window.
-        // - Box select also handle Escape and needs to pass an id to bypass ActiveIdUsingAllKeyboardKeys lock.
+        // - BVH select also handle Escape and needs to pass an id to bypass ActiveIdUsingAllKeyboardKeys lock.
         if (flags & ImGuiMultiSelectFlags_ClearOnEscape)
         {
             if (selection_size != 0 || bs->IsActive)
@@ -7750,7 +7750,7 @@ void ImGui::MultiSelectItemHeader(ImGuiID id, bool* p_selected, ImGuiButtonFlags
 
 // In charge of:
 // - Auto-select on navigation.
-// - Box-select toggle handling.
+// - BVH-select toggle handling.
 // - Right-click handling.
 // - Altering selection based on Ctrl/Shift modifiers, both for keyboard and mouse.
 // - Record current selection state for RangeSrc
@@ -7816,7 +7816,7 @@ void ImGui::MultiSelectItemFooter(ImGuiID id, bool* p_selected, bool* p_pressed)
         storage->RangeSelected = selected; // Will be updated at the end of this function anyway.
     }
 
-    // Box-select toggle handling
+    // BVH-select toggle handling
     if (ms->BoxSelectId != 0)
         if (ImGuiBoxSelectState* bs = GetBoxSelectState(ms->BoxSelectId))
         {
@@ -7860,7 +7860,7 @@ void ImGui::MultiSelectItemFooter(ImGuiID id, bool* p_selected, bool* p_pressed)
     // Alter selection
     if (pressed && (!enter_pressed || !selected))
     {
-        // Box-select
+        // BVH-select
         ImGuiInputSource input_source = (g.NavJustMovedToId == id || g.NavActivateId == id) ? g.NavInputSource : ImGuiInputSource_Mouse;
         if (flags & (ImGuiMultiSelectFlags_BoxSelect1d | ImGuiMultiSelectFlags_BoxSelect2d))
             if (selected == false && !g.BoxSelectState.IsActive && !g.BoxSelectState.IsStarting && input_source == ImGuiInputSource_Mouse && g.IO.MouseClickedCount[0] == 1)

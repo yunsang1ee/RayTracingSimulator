@@ -19,6 +19,59 @@ namespace ys::graphics
 		bool operator==(const Vertex& other) const { return position == other.position && texture == other.texture && normal == other.normal; }
 		bool operator<(const Vertex that) const { return memcmp((void*)this, (void*)&that, sizeof(Vertex)) > 0; }
 	};
+
+	struct PackedVertex
+	{
+		glm::vec4 positionU;
+		glm::vec4 normalV;
+	};
+
+	struct Material
+	{
+		glm::vec4 color;
+		glm::vec4 emittedColor;
+		float emissionStrength;
+		float smoothness;
+		float specularProbability;
+		int flag;
+
+		Material() = default;
+		Material(const glm::vec4& color, const glm::vec4& emittedColor
+			, float emissionStrength, float smoothness, float specularProbability, int flag)
+			: color(color), emittedColor(emittedColor)
+			, emissionStrength{ emissionStrength }, smoothness(smoothness)
+			, specularProbability(specularProbability), flag(flag)
+		{
+		}
+		Material(const Material& other)
+			: color(other.color), emittedColor(other.emittedColor)
+			, emissionStrength(other.emissionStrength), smoothness(other.smoothness)
+			, specularProbability(other.specularProbability), flag(other.flag)
+		{
+		}
+	};
+
+	struct TopLevelAccelerationStructure
+	{
+		glm::vec3 aabbMin;			// 12
+		uint32_t beginNodeOffset;	// 4
+		glm::vec3 aabbMax;			// 12
+		uint32_t pad;				// 4
+		glm::mat4 transform;		// 64
+		glm::mat4 invTransform;		// 64
+		Material material;			// 48
+	};// 208 bytes
+
+	struct GPUBVHNode
+	{
+		glm::vec3 minBounds;		// 12 bytes
+		uint32_t leftChild;			// 4 bytes
+		glm::vec3 maxBounds;		// 12 bytes  
+		uint32_t triangleIndex;		// 4 bytes (leaf일 때)
+		uint32_t triangleCount;		// 4 bytes (leaf일 때)
+		uint32_t pad[3];			// 12 bytes
+	}; // 48 bytes
+
 }
 
 namespace std

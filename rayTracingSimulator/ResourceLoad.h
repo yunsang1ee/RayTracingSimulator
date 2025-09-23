@@ -26,6 +26,6 @@ void ys::ResourceLoad()
 	Resources::Load<Mesh>(L"Cube", L"Cube");
 	Resources::Load<Mesh>(L"Sphere", L"Sphere");
 	//Resources::Load<Mesh>(L"Bunny", L"stanford-bunny");
-	//Resources::Load<Mesh>(L"Dragon", L"stanford-dragon");
+	Resources::Load<Mesh>(L"Dragon", L"stanford-dragon");
 	return;
 }

@@ -3152,7 +3152,7 @@ static bool ImGuiListClipper_StepInternal(ImGuiListClipper* clipper)
                 min_y -= g.Style.ItemSpacing.y;
                 max_y += g.Style.ItemSpacing.y;
 
-                // Box-select on 2D area requires different clipping.
+                // BVH-select on 2D area requires different clipping.
                 if (bs->UnclipMode)
                     data->Ranges.push_back(ImGuiListClipperRange::FromPositions(bs->UnclipRect.Min.y, bs->UnclipRect.Max.y, 0, 0));
             }
@@ -11954,7 +11954,7 @@ ImVec2 ImGui::FindBestWindowPosForPopupEx(const ImVec2& ref_pos, const ImVec2& s
     //GetForegroundDrawList()->AddRect(r_avoid.Min, r_avoid.Max, IM_COL32(255,0,0,255));
     //GetForegroundDrawList()->AddRect(r_outer.Min, r_outer.Max, IM_COL32(0,255,0,255));
 
-    // Combo Box policy (we want a connecting edge)
+    // Combo BVH policy (we want a connecting edge)
     if (policy == ImGuiPopupPositionPolicy_ComboBox)
     {
         const ImGuiDir dir_prefered_order[ImGuiDir_COUNT] = { ImGuiDir_Down, ImGuiDir_Right, ImGuiDir_Left, ImGuiDir_Up };

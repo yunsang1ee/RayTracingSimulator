@@ -6,28 +6,6 @@
 
 namespace ys
 {
-	struct Material
-	{
-		glm::vec4 color;
-		glm::vec4 emittedColor;
-		float emissionStrength;
-		float smoothness;
-		float specularProbability;
-		int flag;
-
-		Material() = default;
-		Material(const glm::vec4& color, const glm::vec4& emittedColor
-			, float emissionStrength, float smoothness, float specularProbability, int flag)
-			: color(color), emittedColor(emittedColor)
-			, emissionStrength{emissionStrength}, smoothness(smoothness)
-			, specularProbability(specularProbability), flag(flag)
-		{}
-		Material(const Material& other)
-			: color(other.color), emittedColor(other.emittedColor)
-			, emissionStrength(other.emissionStrength), smoothness(other.smoothness)
-			, specularProbability(other.specularProbability), flag(other.flag)
-		{}
-	};
 	class SpriteRenderer : public Component
 	{
 
@@ -46,7 +24,7 @@ namespace ys
 
 		graphics::Texture* GetTexture() { return texture;}
 		Mesh* GetMesh() { return mesh;}
-		Material GetMaterial() const { return material;}
+		graphics::Material GetMaterial() const { return material;}
 
 		void SetTexture(graphics::Texture* texture) { this->texture = texture;}
 		void SetShader(graphics::Shader* shader) { this->shader = shader;}
@@ -62,7 +40,7 @@ namespace ys
 		graphics::Texture* texture;
 		graphics::Shader* shader;
 		Mesh* mesh;
-		Material material;
+		graphics::Material material;
 		bool isAmbient;
 	};
 }

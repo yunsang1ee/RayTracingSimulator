@@ -10,7 +10,7 @@ namespace ys
 		{
 			glm::vec3 center;
 			float radius;
-			Material material;
+			graphics::Material material;
 		};
 
 	public:
@@ -49,7 +49,17 @@ namespace ys
 		size_t ssboSphereSize;
 		void* spheresPointer;
 
-		GLuint uboRaytracingData;
+		std::vector<graphics::TopLevelAccelerationStructure> tlasInstances;
+		GLuint ssboTLAS;
+		size_t ssboTLASSize;
+		void* tlasPointer;
+
+		std::vector<graphics::GPUBVHNode> allBVHNodes;
+		GLuint ssboBVHNodes;
+
+		std::vector<graphics::Vertex> allTriangleVertices;
+		GLuint ssboTriangleVertices;
+
 
 		glm::uvec2 screenSize;
 

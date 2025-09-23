@@ -8,6 +8,7 @@ uniform uint maxBounceCount;
 uniform uvec2 screenSize;
 uniform uint numRenderedFrame;
 uniform uint rayPerPixel;
+uniform float jitter;
 uniform bool isInvironment;
 
 out vec4 FragColor;
@@ -114,6 +115,7 @@ HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius)
 HitInfo CalculateRayCollision(Ray ray)
 {
 	HitInfo closestHit;
+	closestHit.isHit = false;
 	closestHit.dist = 1.0f / 0.0f; //INF
 
 	for (int i = 0; i < spheres.length(); ++i)
@@ -203,12 +205,19 @@ void main()
 
 	for(int rayCount = 0; rayCount < rayPerPixel; ++rayCount)
 	{
+		vec2 jit = RandomPointInCircle(rngState) * jitter;
+		vec2 screenCoord = (vec2(pixelCoord) + jit + 0.5f) / viewportSize;
+		vec4 clipSpace = vec4(screenCoord * 2.0f - 1.0f, 1.0f, 1.0f);
+		vec4 viewSpace = invProjectionMatrix * clipSpace;
+		viewSpace /= viewSpace.w;
+
+		vec3 worldSpace = (invViewMatrix * vec4(viewSpace.xyz, 1.0f)).xyz;
+
 		Ray ray;
 		ray.origin = viewPosition;
-		vec2 jit = RandomPointInCircle(rngState);
 		ray.dir = normalize(worldSpace - ray.origin);
 
-		total += Trace(ray, rngState);
+		total += Trace(ray, rngState); 
 	}
 
 	total /= rayPerPixel;

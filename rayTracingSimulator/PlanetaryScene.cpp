@@ -42,6 +42,28 @@ void ys::PlanetaryScene::Init()
 		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 
+	glGenBuffers(1, &ssboTriangleVertices);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTriangleVertices);
+	glBufferStorage(GL_SHADER_STORAGE_BUFFER,
+		sizeof(graphics::PackedVertex) * allTriangleVertices.size(), allTriangleVertices.data(), 0);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssboTriangleVertices);
+
+	glGenBuffers(1, &ssboTLAS);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTLAS);
+	glBufferStorage(GL_SHADER_STORAGE_BUFFER
+		, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size(), tlasInstances.data()
+		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	tlasPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ssboTLASSize
+		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTLAS);
+
+	glGenBuffers(1, &ssboBVHNodes);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboBVHNodes);
+	glBufferStorage(GL_SHADER_STORAGE_BUFFER,
+		sizeof(graphics::GPUBVHNode) * allBVHNodes.size(), allBVHNodes.data(), 0);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboBVHNodes);
+
+
 	// sky_box_texture
 	//Imgui_Manager::Get_Imgui_Manager()->Push_Sky_Box_Texture(Resources::Find<graphics::Texture>(L"Skybox_star"));
 
@@ -195,6 +217,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 			unsigned int screenSizeLoc = glGetUniformLocation(shader->GetShaderID(), "screenSize");
 			unsigned int numRenderedFrameLoc = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
 			unsigned int rayPerPixelLoc = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
+			unsigned int jitterLoc = glGetUniformLocation(shader->GetShaderID(), "jitter");
 			unsigned int isInvironmentLoc = glGetUniformLocation(shader->GetShaderID(), "isInvironment");
 
 			glUniformMatrix4fv(invProjectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
@@ -205,6 +228,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 			glUniform2uiv(screenSizeLoc, 1, glm::value_ptr(screenSize));
 			glUniform1ui(numRenderedFrameLoc, frameCount);
 			glUniform1ui(rayPerPixelLoc, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
+			glUniform1f(jitterLoc, Imgui_Manager::Get_Imgui_Manager()->Get_DoF());
 			glUniform1ui(isInvironmentLoc, Imgui_Manager::Get_Imgui_Manager()->IsInvironmet());
 
 			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
@@ -235,6 +259,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		unsigned int screenSizeLoc = glGetUniformLocation(shader->GetShaderID(), "screenSize");
 		unsigned int numRenderedFrameLoc = glGetUniformLocation(shader->GetShaderID(), "numRenderedFrame");
 		unsigned int rayPerPixelLoc = glGetUniformLocation(shader->GetShaderID(), "rayPerPixel");
+		unsigned int jitterLoc = glGetUniformLocation(shader->GetShaderID(), "jitter");
 		unsigned int isInvironmentLoc = glGetUniformLocation(shader->GetShaderID(), "isInvironment");
 
 		glUniformMatrix4fv(invProjectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(glm::inverse(renderer::mainCamera->GetmainProjectionMatrix())));
@@ -245,6 +270,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		glUniform2uiv(screenSizeLoc, 1, glm::value_ptr(screenSize));
 		glUniform1ui(numRenderedFrameLoc, frameCount);
 		glUniform1ui(rayPerPixelLoc, Imgui_Manager::Get_Imgui_Manager()->Get_RayPerPixel());
+		glUniform1f(jitterLoc, Imgui_Manager::Get_Imgui_Manager()->Get_DoF());
 		glUniform1ui(isInvironmentLoc, Imgui_Manager::Get_Imgui_Manager()->IsInvironmet());
 		
 		if (dispatch == 8)
@@ -392,10 +418,13 @@ void ys::PlanetaryScene::GenObject()
 		{{-1.0f,  1.0f, 0.0f},		{0.0f, 1.0f},		{0.0f, 0.0f, 1.0f}}   // top-left corner
 	};
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// Camera
 	auto camera = object::Instantiate<GameObject>(enums::LayerType::Camera, glm::vec3(3.0f, 1.0f, 5.0f));
 	renderer::mainCamera = camera->AddComponent<Camera>();
 	camera->AddComponent<CameraScript>();
 
+	// Sun
 	{
 		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(-43.03f, 33.94f, 78.11f));
 		auto lightTr = light->GetComponent<Transform>();
@@ -405,7 +434,7 @@ void ys::PlanetaryScene::GenObject()
 		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 		lightSp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		lightSp->SetLightColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		lightSp->SetLightStrength(1.0f);
+		lightSp->SetLightStrength(10.0f);
 		lightSp->IsSun();
 
 		auto scale = lightTr->GetScale();
@@ -418,6 +447,8 @@ void ys::PlanetaryScene::GenObject()
 			}
 		);
 	}
+
+	// Spheres
 	{
 		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(-2.26f, 0.78f, 2.05f));
 		auto lightTr = light->GetComponent<Transform>();
@@ -456,8 +487,10 @@ void ys::PlanetaryScene::GenObject()
 			}
 		);
 	}
+	for (int i = 0; i < 5; ++i)
 	{
-		auto light = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.06f, 0.57f, 1.98f));
+		auto light = object::Instantiate<GameObject>(enums::LayerType::Object
+			, glm::vec3(0.06f, 0.57f, 1.98f) + glm::vec3(1.0f, 1.0f, 1.0f) * static_cast<float>(i + 1));
 		auto lightTr = light->GetComponent<Transform>();
 		auto lightSp = light->AddComponent<SpriteRenderer>();
 		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
@@ -476,6 +509,17 @@ void ys::PlanetaryScene::GenObject()
 		);
 	}
 
+	// Main Object (Triangle 100`000 Mesh)
+	{
+		auto dragon = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(-0.06f, 0.57f, -11.98f));
+		auto tr = dragon->GetComponent<Transform>();
+		auto sp = dragon->AddComponent<SpriteRenderer>();
+		sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+		sp->SetMesh(Resources::Find<Mesh>(L"Dragon"));
+		sp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		sp->SetSmoothness(0.1f);
+		sp->SetSpecularProbability(0.8f);
+	}
 
 	auto mainObject = object::Instantiate<GameObject>(enums::LayerType::Object, glm::vec3(0.0f, -10.51f, 2.0f));
 	auto tr = mainObject->GetComponent<Transform>();
@@ -486,15 +530,15 @@ void ys::PlanetaryScene::GenObject()
 	sp->SetObjectColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 	sp->SetSmoothness(0.0f);
 
-		auto scale = tr->GetScale();
-		spheresIndex.emplace(reinterpret_cast<uintptr_t>(mainObject), std::make_pair(false, spheres.size()));
-		spheres.emplace_back(Sphere{
-				tr->GetPosition()
-				, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
-				, sp->GetMaterial()
-			}
-		);
-	}
+	auto scale = tr->GetScale();
+	spheresIndex.emplace(reinterpret_cast<uintptr_t>(mainObject), std::make_pair(false, spheres.size()));
+	spheres.emplace_back(Sphere{
+			tr->GetPosition()
+			, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
+			, sp->GetMaterial()
+		}
+	);
+}
 
 
 void ys::PlanetaryScene::UpdateSSBO() // OK??

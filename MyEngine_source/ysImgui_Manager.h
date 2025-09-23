@@ -73,6 +73,7 @@ namespace ys
 
 		// fov
 		static float Get_Fov() { return glm::radians(fov); }
+		static float Get_DoF() { return jitter; }
 
 		static void Test_Object(GameObject* Game_Object);
 
@@ -127,6 +128,7 @@ namespace ys
 		// fov
 
 		static float fov;
+		static float jitter;
 
 
 	};

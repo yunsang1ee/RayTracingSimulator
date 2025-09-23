@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 	glViewport(0, 0, kWidth, kHight);
 	glEnable(GL_DEPTH_TEST); glDepthMask(GL_TRUE); glClearDepth(1.0f);
 	glEnable(GL_CULL_FACE);      
-	glEnable(GL_DEBUG_OUTPUT);
+	//glEnable(GL_DEBUG_OUTPUT);
 
 	glDebugMessageCallback(MessageCallback, 0);
 

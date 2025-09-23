@@ -10,6 +10,7 @@ uniform uint maxBounceCount;
 uniform uvec2 screenSize;
 uniform uint numRenderedFrame;
 uniform uint rayPerPixel;
+uniform float jitter;
 uniform bool isInvironment;
 
 struct Ray
@@ -35,6 +36,33 @@ struct Sphere
 	Material material;	// 48
 };	//64
 
+struct PackedVertex
+{
+	vec4 positionU;	// 12
+	vec4 normalV;	// 12
+}; // 32 bytes
+
+struct TopLevelAccelerationStructure
+{
+	vec3 aabbMin;			// 12
+	uint beginNodeOffset;	// 4
+	vec3 aabbMax;			// 12
+	uint pad;				// 4
+	mat4 transform;		// 64
+	mat4 invTransform;		// 64
+	Material material;			// 48
+};// 208 bytes
+
+struct GPUBVHNode
+{
+	vec3 minBounds;		// 12 bytes
+	uint leftChild;			// 4 bytes
+	vec3 maxBounds;		// 12 bytes  
+	uint triangleIndex;		// 4 bytes (leaf일 때)
+	uint triangleCount;		// 4 bytes (leaf일 때)
+	uint pad[3];			// 12 bytes
+}; // 48 bytes
+
 struct HitInfo
 {
 	bool isHit;
@@ -50,6 +78,19 @@ layout (std430, binding = 1) buffer Spheres // std430 -> float = 4byte, vec3 = 1
 	Sphere spheres[];
 };
 
+layout (std430, binding = 2) buffer Vertices {
+    PackedVertex vertices[];
+};
+
+layout (std430, binding = 3) buffer TLASInstances {
+    TopLevelAccelerationStructure tlasInstances[];
+};
+
+layout (std430, binding = 4) buffer BVHNodes {
+    GPUBVHNode bvhNodes[];
+};
+
+const uint UINT32_MAX = ~0u;// 4294967295
 
 float RandomValue(inout uint state)
 {
@@ -180,7 +221,6 @@ vec3 Trace(Ray ray, inout uint rngState)
 
 void main()
 {
-
 	// 화면 좌표를 클립 공간으로 변환
 	vec4 clipSpace = vec4((gl_GlobalInvocationID.xy / viewportSize * 2.0f - 1.0f), 1.0f, 1.0f); // ?
 	// 클립 공간을 뷰 공간으로 변환
@@ -202,12 +242,20 @@ void main()
 
 	for(int rayCount = 0; rayCount < rayPerPixel; ++rayCount)
 	{
+		vec2 jit = RandomPointInCircle(rngState) * jitter;
+		vec2 screenCoord = (vec2(pixelCoord) + jit + 0.5f) / viewportSize;
+		vec4 clipSpace = vec4(screenCoord * 2.0f - 1.0f, 1.0f, 1.0f);
+		vec4 viewSpace = invProjectionMatrix * clipSpace;
+		viewSpace /= viewSpace.w;
+
+		vec3 worldSpace = (invViewMatrix * vec4(viewSpace.xyz, 1.0f)).xyz;
+
 		Ray ray;
 		ray.origin = viewPosition;
-		vec2 jit = RandomPointInCircle(rngState);
 		ray.dir = normalize(worldSpace - ray.origin);
 
-		total += Trace(ray, rngState);
+		// 현재 환경광이 반사값으로 들어옴 fragment shader와의 차이
+		total += Trace(ray, rngState); 
 	}
 
 	total /= rayPerPixel;

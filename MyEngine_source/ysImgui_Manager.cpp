@@ -37,10 +37,11 @@ bool ys::Imgui_Manager::isInvironment = false;
 UINT ys::Imgui_Manager::maxBounceCount = 1;
 UINT ys::Imgui_Manager::delay = 1;
 
-float ys::Imgui_Manager::fov = 30.0f;
+float ys::Imgui_Manager::fov = 60.0f;
+float ys::Imgui_Manager::jitter = 0.0f;
 
 
-glm::vec3 ys::Imgui_Manager::CameraPos = glm::vec3(0,0,0);
+glm::vec3 ys::Imgui_Manager::CameraPos = glm::vec3(0, 0, 0);
 
 int ys::Imgui_Manager::iPhongView_X = 640;
 int ys::Imgui_Manager::iPhongView_Y = 360;
@@ -130,7 +131,7 @@ void ys::Imgui_Manager::Render()
 
 	Change_Transform_Object();
 
-	
+
 	ImGui::End();
 
 
@@ -158,7 +159,7 @@ void ys::Imgui_Manager::Render()
 	ImGui::Text("");
 	ImGui::Text("Dispath");
 	static int dispath = dispatch; // 라디오 버튼 추가 
-	
+
 	ImGui::RadioButton("fargment", &dispath, 0);
 	ImGui::RadioButton("dispath 8", &dispath, 8);
 	ImGui::RadioButton("dispath 16", &dispath, 16);
@@ -167,7 +168,7 @@ void ys::Imgui_Manager::Render()
 	ImGui::Text("Selected Option: %d", dispath);
 
 
-	
+
 	isObjectScreenHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
 
 	int Ray_Per_Pixel = rayPerPixel;
@@ -192,15 +193,24 @@ void ys::Imgui_Manager::Render()
 	Imgui_Manager::delay = delay;
 	ImGui::Text("Frame Delay: %d", delay);
 
+	float jitter = Imgui_Manager::jitter;
 	ImGui::Text("");
-	ImGui::Text("Fov");
+	ImGui::Text("DoF");
+	static bool factor{ false };
+	ImGui::Checkbox("DoF factor", &factor);
+	ImGui::SliderFloat("DoF", &jitter, 0.0f, 1.0f * (factor ? 100 : 1), "Value = %.3f"); // 현재 변수 값 출력
+	Imgui_Manager::jitter = jitter;
+	ImGui::Text("DoF: %.3f", jitter);
+
+	ImGui::Text("");
+	ImGui::Text("FoV");
 	ImGui::SliderFloat("Fov", &fov, 10, 90, "Value = %.3f"); // 현재 변수 값 출력
 	ImGui::Text("Fov: %.3f", fov);
 
 	if (Object_Pointer != nullptr)
 	{
 		// 색상 변수 선언
-		glm::vec4 color1 = { Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().color}; // 빨강 
+		glm::vec4 color1 = { Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().color }; // 빨강 
 		// 색상 편집기 추가 
 		float Color[3] = { color1.x,color1.y,color1.z };
 
@@ -210,7 +220,7 @@ void ys::Imgui_Manager::Render()
 		// 색상 버튼 추가 (색상 미리보기) 
 		Object_Pointer->GetComponent<SpriteRenderer>()->SetObjectColor(glm::vec4(Color[0], Color[1], Color[2], color1.w));
 
-		ImGui::ColorButton("Object_Color", ImVec4(color1.x, color1.y, color1.z,1.0));
+		ImGui::ColorButton("Object_Color", ImVec4(color1.x, color1.y, color1.z, 1.0));
 
 		float smoothness = Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().smoothness;
 		ImGui::Text("");
@@ -219,7 +229,7 @@ void ys::Imgui_Manager::Render()
 		Object_Pointer->GetComponent<SpriteRenderer>()->SetSmoothness(smoothness);
 		ImGui::Text("Smoothness: %.3f", smoothness);
 
-		
+
 		float specularProbability = Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().specularProbability;
 		ImGui::Text("");
 		ImGui::Text("SpecularProbability");
@@ -227,7 +237,7 @@ void ys::Imgui_Manager::Render()
 		Object_Pointer->GetComponent<SpriteRenderer>()->SetSpecularProbability(specularProbability);
 		ImGui::Text("SpecularProbability: %.3f", specularProbability);
 
-		
+
 		// 색상 변수 선언
 		glm::vec4 EmittedColor = { Object_Pointer->GetComponent<SpriteRenderer>()->GetMaterial().emittedColor }; // 빨강 
 		// 색상 편집기 추가 
@@ -247,7 +257,7 @@ void ys::Imgui_Manager::Render()
 		ImGui::SliderFloat("emissionStrength", &emissionstrength, 0.f, 10.f, "Value = %.3f"); // 현재 변수 값 출력
 		Object_Pointer->GetComponent<SpriteRenderer>()->SetLightStrength(emissionstrength);
 		ImGui::Text("emissionStrength: %.3f", emissionstrength);
-				
+
 
 	}
 	else
@@ -405,7 +415,7 @@ void ys::Imgui_Manager::Change_Transform_Object()
 		iGizmo_type = ImGuizmo::OPERATION::ROTATE;
 	}
 
-	
+
 
 	if (Object_Pointer != nullptr && iGizmo_type != -1) // 물체를 받아와서 물체가 있다면? 검사
 	{
