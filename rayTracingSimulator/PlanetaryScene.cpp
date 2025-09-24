@@ -33,6 +33,7 @@ void ys::PlanetaryScene::Init()
 	glBindVertexArray(VAO);
 
 	GenObject();
+	BuildOrRefitAS();
 
 	glGenBuffers(1, &ssboSphere);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
@@ -53,7 +54,7 @@ void ys::PlanetaryScene::Init()
 	glBufferStorage(GL_SHADER_STORAGE_BUFFER
 		, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size(), tlasInstances.data()
 		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-	tlasPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ssboTLASSize
+	tlasPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size()
 		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTLAS);
 
@@ -177,14 +178,18 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		auto object = Imgui_Manager::Get_Imgui_Manager()->GetPickedObject();
 		if (object)
 		{
-			spheresIndex[reinterpret_cast<uintptr_t>(object)].first = true;
+			if (spheresIndex.contains(reinterpret_cast<uintptr_t>(object)))
+				spheresIndex[reinterpret_cast<uintptr_t>(object)].first = true;
+			if (tlasIndex.contains(reinterpret_cast<uintptr_t>(object)))
+				tlasIndex[reinterpret_cast<uintptr_t>(object)].first = true;
 			frameCount = 0;
 		}
 	}
 
 	if (Imgui_Manager::Get_Imgui_Manager()->isObjectChange()) frameCount = 0;
 	// SSBO Update
-	UpdateSSBO();
+	UpdateSphere();
+	BuildOrRefitAS();
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboSphere);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 
@@ -250,6 +255,9 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		glBindImageTexture(0, currentTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 		glClearTexImage(currentTexture, 0, GL_RGBA, GL_FLOAT, glm::value_ptr(glm::uvec4(1, 0, 0, 1)));
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssboSphere);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssboTriangleVertices);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTLAS);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboBVHNodes);
 
 		unsigned int invProjectionMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invProjectionMatrix");
 		unsigned int invViewMatrixLoc = glGetUniformLocation(shader->GetShaderID(), "invViewMatrix");
@@ -541,7 +549,7 @@ void ys::PlanetaryScene::GenObject()
 }
 
 
-void ys::PlanetaryScene::UpdateSSBO() // OK??
+void ys::PlanetaryScene::UpdateSphere() // OK??
 {
 	for (auto& [key, value] : spheresIndex)
 	{
@@ -582,4 +590,171 @@ void ys::PlanetaryScene::UpdateSSBO() // OK??
 	}
 
 	memcpy(spheresPointer, spheres.data(), dataSize);
+}
+
+void ys::PlanetaryScene::BuildOrRefitAS()
+{
+	auto allObject = GetLayer(enums::LayerType::Object)->GetGameObjects();
+
+	std::vector<uint32_t> updatedInstanceIndices;
+	bool appendedBLAS = false;
+	for (auto& obj : allObject)
+	{
+		auto sprite = obj->GetComponent<SpriteRenderer>();
+		if (!sprite) continue;
+		auto mesh = sprite->GetMesh();
+		if (!mesh) continue;
+		std::wstring meshName = mesh->getName();
+		if (meshName == L"Sphere") continue;
+		auto bvh = mesh->GetBVH();
+		if (bvh.Get_Root() == nullptr) continue;
+
+		if (tlasIndex.contains(reinterpret_cast<uintptr_t>(obj)))
+		{
+			auto& [dirty, index] = tlasIndex[reinterpret_cast<uintptr_t>(obj)];
+			if (dirty)
+			{
+				updatedInstanceIndices.push_back(index);
+				auto& dirtyTlas = tlasInstances[index];
+				dirtyTlas.transform = obj->GetComponent<Transform>()->GetWorldMatrix();
+				dirtyTlas.invTransform = glm::inverse(dirtyTlas.transform);
+
+				auto root = bvh.Get_Root();
+				auto blasMin = root->Box.Min;
+				auto blasMax = root->Box.Max;
+				glm::vec3 minBounds = glm::vec3(std::numeric_limits<float>::max());
+				glm::vec3 maxBounds = glm::vec3(std::numeric_limits<float>::lowest());
+
+				const glm::vec3 modelCorners[8] = {
+					{blasMin.x, blasMin.y, blasMin.z},
+					{blasMin.x, blasMin.y, blasMax.z},
+					{blasMin.x, blasMax.y, blasMin.z},
+					{blasMin.x, blasMax.y, blasMax.z},
+					{blasMax.x, blasMin.y, blasMin.z},
+					{blasMax.x, blasMin.y, blasMax.z},
+					{blasMax.x, blasMax.y, blasMin.z},
+					{blasMax.x, blasMax.y, blasMax.z},
+				};
+				for (const auto& c : modelCorners)
+				{
+					auto wc = glm::vec3(dirtyTlas.transform * glm::vec4(c, 1.0f));
+					minBounds = glm::min(minBounds, wc);
+					maxBounds = glm::max(maxBounds, wc);
+				}
+				dirtyTlas.aabbMin = minBounds;
+				dirtyTlas.aabbMax = maxBounds;
+
+				dirtyTlas.material = sprite->GetMaterial();
+				dirty = false;
+			}
+			continue;
+		}
+
+		appendedBLAS = true;
+		graphics::TopLevelAccelerationStructure tlas{};
+		tlas.transform = obj->GetComponent<Transform>()->GetWorldMatrix();
+		tlas.invTransform = glm::inverse(tlas.transform);
+		tlas.beginNodeOffset = allBVHNodes.size();
+		tlas.beginTriangleOffset = allTriangleVertices.size();
+		tlas.material = sprite->GetMaterial();
+
+		auto bvhNodes = bvh.ConvertToGPUNodes();
+		allBVHNodes.insert(allBVHNodes.end(), bvhNodes.begin(), bvhNodes.end());
+
+		auto triangles = bvh.GetTriangleVertices();
+		allTriangleVertices.insert(allTriangleVertices.end(), triangles.begin(), triangles.end());
+
+		auto root = bvh.Get_Root();
+		auto blasMin = root->Box.Min;
+		auto blasMax = root->Box.Max;
+		glm::vec3 minBounds = glm::vec3(std::numeric_limits<float>::max());
+		glm::vec3 maxBounds = glm::vec3(std::numeric_limits<float>::lowest());
+		
+		const glm::vec3 modelCorners[8] = {
+			{blasMin.x, blasMin.y, blasMin.z},
+			{blasMin.x, blasMin.y, blasMax.z},
+			{blasMin.x, blasMax.y, blasMin.z},
+			{blasMin.x, blasMax.y, blasMax.z},
+			{blasMax.x, blasMin.y, blasMin.z},
+			{blasMax.x, blasMin.y, blasMax.z},
+			{blasMax.x, blasMax.y, blasMin.z},
+			{blasMax.x, blasMax.y, blasMax.z},
+		};
+		for (const auto& c : modelCorners)
+		{
+			auto wc = glm::vec3(tlas.transform * glm::vec4(c, 1.0f));
+			minBounds = glm::min(minBounds, wc);
+			maxBounds = glm::max(maxBounds, wc);
+		}
+		tlas.aabbMin = minBounds;
+		tlas.aabbMax = maxBounds;
+
+		tlasIndex[reinterpret_cast<uintptr_t>(obj)] = { false, tlasInstances.size() };
+		tlasInstances.push_back(tlas);
+	}
+
+	if (appendedBLAS)
+	{
+		glDeleteBuffers(1, &ssboTriangleVertices);
+		glDeleteBuffers(1, &ssboTLAS);
+		glDeleteBuffers(1, &ssboBVHNodes);
+
+		glGenBuffers(1, &ssboTriangleVertices);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTriangleVertices);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER,
+			sizeof(graphics::PackedVertex)* allTriangleVertices.size(), allTriangleVertices.data(), 0);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssboTriangleVertices);
+
+		glGenBuffers(1, &ssboTLAS);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTLAS);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(graphics::TopLevelAccelerationStructure)* tlasInstances.size(), tlasInstances.data()
+			, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+
+		tlasPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size()
+			, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+
+		glGenBuffers(1, &ssboBVHNodes);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboBVHNodes);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER,
+			sizeof(graphics::GPUBVHNode) * allBVHNodes.size(), allBVHNodes.data(), 0);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboBVHNodes);
+	}
+
+	if (!tlasPointer)
+	{
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTLAS);
+		tlasPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size()
+			, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	}
+	if (updatedInstanceIndices.empty()) return;
+
+	std::vector<uint32_t> sorted = updatedInstanceIndices;
+	std::sort(sorted.begin(), sorted.end());
+	sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
+
+	char* base = reinterpret_cast<char*>(tlasPointer);
+
+	size_t runStart = sorted[0];
+	size_t prev = sorted[0];
+
+	auto flushRun = [&](size_t startIdx, size_t endIdx)
+		{
+			const size_t count = endIdx - startIdx + 1;
+			const size_t byteOffset = startIdx * sizeof(graphics::TopLevelAccelerationStructure);
+			memcpy(base + byteOffset,
+				reinterpret_cast<const char*>(tlasInstances.data()) + byteOffset,
+				count * sizeof(graphics::TopLevelAccelerationStructure));
+		};
+
+	for (size_t i = 1; i < sorted.size(); ++i)
+	{
+		if (sorted[i] == prev + 1)
+		{
+			prev = sorted[i];
+			continue;
+		}
+		flushRun(runStart, prev);
+		runStart = prev = sorted[i];
+	}
+	flushRun(runStart, prev);
 }

@@ -47,7 +47,7 @@ struct TopLevelAccelerationStructure
 	vec3 aabbMin;			// 12
 	uint beginNodeOffset;	// 4
 	vec3 aabbMax;			// 12
-	uint pad;				// 4
+	uint beginTriangleOffset;				// 4
 	mat4 transform;		// 64
 	mat4 invTransform;		// 64
 	Material material;			// 48

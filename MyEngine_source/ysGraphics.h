@@ -56,7 +56,7 @@ namespace ys::graphics
 		glm::vec3 aabbMin;			// 12
 		uint32_t beginNodeOffset;	// 4
 		glm::vec3 aabbMax;			// 12
-		uint32_t pad;				// 4
+		uint32_t beginTriangleOffset;// 4
 		glm::mat4 transform;		// 64
 		glm::mat4 invTransform;		// 64
 		Material material;			// 48

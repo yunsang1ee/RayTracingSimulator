@@ -29,8 +29,9 @@ namespace ys
 		void PhongRender(HDC hDC, const int& index);
 		void SetUpFBO(int iX, int iY);
 		void GenObject();
-		void UpdateSSBO();
+		void UpdateSphere();
 
+		void BuildOrRefitAS();
 	private:
 		GLuint VAO{};
 
@@ -49,15 +50,15 @@ namespace ys
 		size_t ssboSphereSize;
 		void* spheresPointer;
 
+		std::unordered_map<uintptr_t, std::pair<bool, size_t>> tlasIndex;
 		std::vector<graphics::TopLevelAccelerationStructure> tlasInstances;
 		GLuint ssboTLAS;
-		size_t ssboTLASSize;
 		void* tlasPointer;
 
 		std::vector<graphics::GPUBVHNode> allBVHNodes;
 		GLuint ssboBVHNodes;
 
-		std::vector<graphics::Vertex> allTriangleVertices;
+		std::vector<graphics::PackedVertex> allTriangleVertices;
 		GLuint ssboTriangleVertices;
 
 

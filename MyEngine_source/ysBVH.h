@@ -63,7 +63,7 @@ namespace ys
 
 		void Split(uint32_t parent, int depth);
 
-		Node Get_Root() { return Root; }
+		Node* Get_Root() { return &Root; }
 
 		virtual void Init();
 		virtual void Update();
