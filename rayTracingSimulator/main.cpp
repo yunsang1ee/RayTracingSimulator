@@ -16,7 +16,7 @@
 #include "PlanetaryScene.h"
 #include "ResourceLoad.h"
 
-static float kWidth = 2560, kHight = 1440;
+static float kWidth = 1920, kHight = 1080;
 
 ys::Application app;
 
