@@ -17,7 +17,7 @@ extern ys::Application app;
 
 ys::PlanetaryScene::PlanetaryScene()
 	: ssboSphereSize(sizeof(Sphere) * 10)
-	, screenSize(1920, 1080)
+	, screenSize(2560, 1440)
 {
 }
 
@@ -274,11 +274,11 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 		glUniform1ui(isInvironmentLoc, Imgui_Manager::Get_Imgui_Manager()->IsInvironmet());
 		
 		if (dispatch == 8)
-			shader->DispatchCompute(glm::vec2(1920, 1080), graphics::Shader::DispatchMode::dispatch8x8x1);
+			shader->DispatchCompute(glm::vec2(2560, 1440), graphics::Shader::DispatchMode::dispatch8x8x1);
 		else if (dispatch == 16)
-			shader->DispatchCompute(glm::vec2(1920, 1080), graphics::Shader::DispatchMode::dispatch16x16x1);
+			shader->DispatchCompute(glm::vec2(2560, 1440), graphics::Shader::DispatchMode::dispatch16x16x1);
 		else if (dispatch == 32)
-			shader->DispatchCompute(glm::vec2(1920, 1080), graphics::Shader::DispatchMode::dispatch32x32x1);
+			shader->DispatchCompute(glm::vec2(2560, 1440), graphics::Shader::DispatchMode::dispatch32x32x1);
 		// --------------------------------- OK ---------------------------------
 		glBindFramebuffer(GL_FRAMEBUFFER, phongFramebuffer);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, currentTexture, 0);
@@ -340,7 +340,7 @@ void ys::PlanetaryScene::Render(HDC hDC, const int& index)
 	mixShader->Unbind();
 
 	glBindTexture(GL_TEXTURE_2D, previousTexture);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 0, 0, 1920, 1080, 0);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 0, 0, 2560, 1440, 0);
 
 
 	frameCount++;
@@ -515,7 +515,7 @@ void ys::PlanetaryScene::GenObject()
 		auto tr = dragon->GetComponent<Transform>();
 		auto sp = dragon->AddComponent<SpriteRenderer>();
 		sp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
-		sp->SetMesh(Resources::Find<Mesh>(L"Dragon"));
+		sp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
 		sp->SetObjectColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		sp->SetSmoothness(0.1f);
 		sp->SetSpecularProbability(0.8f);

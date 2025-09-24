@@ -16,7 +16,7 @@
 #include "PlanetaryScene.h"
 #include "ResourceLoad.h"
 
-static float kWidth = 2320, kHight = 1080;
+static float kWidth = 2560, kHight = 1440;
 
 ys::Application app;
 
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 		glfwTerminate();
 		return -1;
 	}
-	glfwSetWindowPos(window, 100, 100);
+	glfwSetWindowPos(window, 0, 23);
 	glfwMakeContextCurrent(window);
 
 	//initialize GLAD (func pointer)

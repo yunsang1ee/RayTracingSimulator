@@ -144,8 +144,8 @@ void ys::Imgui_Manager::Render()
 	ImGui::End();
 
 
-	ImGui::SetNextWindowPos(ImVec2(1920, 0), ImGuiCond_Always); // 한번만 위치 설정(이동 가능)
-	ImGui::SetNextWindowSize(ImVec2(400, 1080), ImGuiCond_Always); // 한번만 창 크기 설정(크기 조정 가능)
+	ImGui::SetNextWindowPos(ImVec2(2160, 0), ImGuiCond_Always); // 한번만 위치 설정(이동 가능)
+	ImGui::SetNextWindowSize(ImVec2(400, 1440), ImGuiCond_Always); // 한번만 창 크기 설정(크기 조정 가능)
 	ImGuiWindowFlags tool_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 	ImGui::Begin("Object", nullptr, tool_flags);
 
