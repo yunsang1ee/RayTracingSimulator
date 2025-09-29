@@ -2,6 +2,7 @@
 #include "ysCollider.h"
 #include <ysGraphics.h>
 constexpr uint32_t kLeafMax = 12;
+constexpr uint32_t kMaxDepth = 64;
 constexpr uint32_t kInvalid = std::numeric_limits<uint32_t>::max();
 
 namespace ys

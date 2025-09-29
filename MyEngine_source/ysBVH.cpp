@@ -50,7 +50,8 @@ namespace ys
 	{
 		Node& p = AllNode[parent];
 
-		if (p.TriangleCount <= kLeafMax)
+		// 최대 깊이 제한 추가
+		if (p.TriangleCount <= kLeafMax || depth >= kMaxDepth)
 		{
 			p.ChildIndex = kInvalid;
 			return;
@@ -78,6 +79,11 @@ namespace ys
 
 		if (leftCount == 0 || rightCount == 0)
 		{
+			if (p.TriangleCount <= 1) {
+				p.ChildIndex = kInvalid;
+				return;
+			}
+			
 			const uint32_t halfCount = p.TriangleCount / 2;
 			std::nth_element(
 				AllTriangle.begin() + begin,
@@ -91,11 +97,15 @@ namespace ys
 			leftCount = halfCount;
 			rightCount = p.TriangleCount - halfCount;
 			mid = begin + leftCount;
+			
+			if (leftCount == 0 || rightCount == 0) {
+				p.ChildIndex = kInvalid;
+				return;
+			}
 		}
 
-		const uint32_t leftIndex = static_cast<uint32_t>(AllNode.size());
-		const uint32_t rightIndex = leftIndex + 1;
-		p.ChildIndex = leftIndex;
+		const uint32_t childIndex = static_cast<uint32_t>(AllNode.size());
+		AllNode[parent].ChildIndex = childIndex;
 
 		Node left{}, right{};
 		left.TriangleIndex = begin;
@@ -117,8 +127,8 @@ namespace ys
 		AllNode.push_back(left);
 		AllNode.push_back(right);
 
-		Split(AllNode[parent].ChildIndex, depth + 1);
-		Split(AllNode[parent].ChildIndex + 1, depth + 1);
+		Split(childIndex, depth + 1);
+		Split(childIndex + 1, depth + 1);
 	}
 
 

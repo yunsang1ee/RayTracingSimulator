@@ -43,26 +43,26 @@ void ys::PlanetaryScene::Init()
 		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssboSphere);
 
-	glGenBuffers(1, &ssboTriangleVertices);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTriangleVertices);
-	glBufferStorage(GL_SHADER_STORAGE_BUFFER,
-		sizeof(graphics::PackedVertex) * allTriangleVertices.size(), allTriangleVertices.data(), 0);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssboTriangleVertices);
+	//glGenBuffers(1, &ssboTriangleVertices);
+	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTriangleVertices);
+	//glBufferStorage(GL_SHADER_STORAGE_BUFFER,
+	//	sizeof(graphics::PackedVertex) * allTriangleVertices.size(), allTriangleVertices.data(), 0);
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssboTriangleVertices);
 
-	glGenBuffers(1, &ssboTLAS);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTLAS);
-	glBufferStorage(GL_SHADER_STORAGE_BUFFER
-		, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size(), tlasInstances.data()
-		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-	tlasPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size()
-		, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTLAS);
+	//glGenBuffers(1, &ssboTLAS);
+	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTLAS);
+	//glBufferStorage(GL_SHADER_STORAGE_BUFFER
+	//	, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size(), tlasInstances.data()
+	//	, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	//tlasPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size()
+	//	, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTLAS);
 
-	glGenBuffers(1, &ssboBVHNodes);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboBVHNodes);
-	glBufferStorage(GL_SHADER_STORAGE_BUFFER,
-		sizeof(graphics::GPUBVHNode) * allBVHNodes.size(), allBVHNodes.data(), 0);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboBVHNodes);
+	//glGenBuffers(1, &ssboBVHNodes);
+	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboBVHNodes);
+	//glBufferStorage(GL_SHADER_STORAGE_BUFFER,
+	//	sizeof(graphics::GPUBVHNode) * allBVHNodes.size(), allBVHNodes.data(), 0);
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboBVHNodes);
 
 
 	// sky_box_texture
@@ -495,27 +495,19 @@ void ys::PlanetaryScene::GenObject()
 			}
 		);
 	}
-	for (int i = 0; i < 5; ++i)
-	{
-		auto light = object::Instantiate<GameObject>(enums::LayerType::Object
-			, glm::vec3(0.06f, 0.57f, 1.98f) + glm::vec3(1.0f, 1.0f, 1.0f) * static_cast<float>(i + 1));
-		auto lightTr = light->GetComponent<Transform>();
-		auto lightSp = light->AddComponent<SpriteRenderer>();
-		lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
-		lightSp->SetMesh(Resources::Find<Mesh>(L"Sphere"));
-		lightSp->SetObjectColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-		lightSp->SetSmoothness(0.0f);
-
-		auto scale = lightTr->GetScale();
-
-		spheresIndex.emplace(reinterpret_cast<uintptr_t>(light), std::make_pair(false, spheres.size()));
-		spheres.emplace_back(Sphere{
-				lightTr->GetPosition()
-				, std::min({abs(scale.x),abs(scale.y),abs(scale.z)})
-				, lightSp->GetMaterial()
-			}
-		);
-	}
+	// 버그 존재 - 첫 Bunny 값이 이상함 + 드래곤이 안나옴
+	//for (int i = 0; i < 5; ++i)
+	//{
+	//	auto light = object::Instantiate<GameObject>(enums::LayerType::Object
+	//		, glm::vec3(0.06f, 0.57f, 1.98f) + glm::vec3(1.0f, 1.0f, 1.0f) * static_cast<float>(i + 1));
+	//	auto lightTr = light->GetComponent<Transform>();
+	//	lightTr->SetScale(glm::vec3(5.0f, 5.0f, 5.0f));
+	//	auto lightSp = light->AddComponent<SpriteRenderer>();
+	//	lightSp->SetShader(Resources::Find<graphics::Shader>(L"phong"));
+	//	lightSp->SetMesh(Resources::Find<Mesh>(L"Bunny"));
+	//	lightSp->SetObjectColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	//	lightSp->SetSmoothness(0.0f);
+	//}
 
 	// Main Object (Triangle 100`000 Mesh)
 	{
@@ -689,7 +681,9 @@ void ys::PlanetaryScene::BuildOrRefitAS()
 		tlas.aabbMin = minBounds;
 		tlas.aabbMax = maxBounds;
 
-		tlasIndex[reinterpret_cast<uintptr_t>(obj)] = { false, tlasInstances.size() };
+		auto newIndex = tlasInstances.size();
+		updatedInstanceIndices.push_back(newIndex);
+		tlasIndex[reinterpret_cast<uintptr_t>(obj)] = { true, newIndex };
 		tlasInstances.push_back(tlas);
 	}
 
@@ -712,6 +706,7 @@ void ys::PlanetaryScene::BuildOrRefitAS()
 
 		tlasPointer = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(graphics::TopLevelAccelerationStructure) * tlasInstances.size()
 			, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTLAS);
 
 		glGenBuffers(1, &ssboBVHNodes);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboBVHNodes);

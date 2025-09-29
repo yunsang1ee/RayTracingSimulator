@@ -13,12 +13,6 @@ uniform uint rayPerPixel;
 uniform float jitter;
 uniform bool isInvironment;
 
-struct Ray
-{
-	vec3 origin;
-	vec3 dir;
-};
-
 struct Material
 {
 	vec4 color;             // 16
@@ -63,15 +57,6 @@ struct GPUBVHNode
 	uint pad[3];			// 12 bytes
 }; // 48 bytes
 
-struct HitInfo
-{
-	bool isHit;
-	float dist;
-	vec3 hitPoint;
-	vec3 normal;
-	Material material;
-};
-
 layout (rgba32f, binding = 0) uniform image2D outputImage;
 layout (std430, binding = 1) buffer Spheres // std430 -> float = 4byte, vec3 = 12byte, vec4 = 16byte
 {
@@ -90,6 +75,21 @@ layout (std430, binding = 4) buffer BVHNodes {
     GPUBVHNode bvhNodes[];
 };
 
+struct Ray
+{
+	vec3 origin;
+	vec3 dir;
+};
+
+struct HitInfo
+{
+	bool isHit;
+	float dist;
+	vec3 hitPoint;
+	vec3 normal;
+	Material material;
+};
+
 const uint UINT32_MAX = ~0u;// 4294967295
 
 float RandomValue(inout uint state)
@@ -98,13 +98,6 @@ float RandomValue(inout uint state)
 	uint result = ((state >> ((state >> 28) + 4)) ^ state) * 277803737;
 	result = (result >> 22) ^ result;
 	return result / 4294967295.0;
-}
-
-vec2 RandomPointInCircle(inout uint state)
-{
-	float angle = RandomValue(state) * 2 * 3.141592;
-	vec2 pointOnCircle = vec2(cos(angle), sin(angle));
-	return pointOnCircle * sqrt(RandomValue(state));
 }
 
 float RandomValueNormalDistribution(inout uint state) // Box-Muller transform
@@ -120,6 +113,13 @@ vec3 RandomDirection(inout uint state)
 	float y = RandomValueNormalDistribution(state);
 	float z = RandomValueNormalDistribution(state);
 	return normalize(vec3(x, y, z));
+}
+
+vec2 RandomPointInCircle(inout uint state)
+{
+	float angle = RandomValue(state) * 2 * 3.141592;
+	vec2 pointOnCircle = vec2(cos(angle), sin(angle));
+	return pointOnCircle * sqrt(RandomValue(state));
 }
 
 vec3 RandomHemisphereDirection(vec3 normal, inout uint rngState)
@@ -154,7 +154,153 @@ HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius)
 	return hitInfo;
 }
 
-HitInfo CalculateRayCollision(Ray ray)
+// Slab method
+bool RayAABB(Ray r, vec3 bmin, vec3 bmax, out float tMinOut, out float tMaxOut){
+    vec3 invD = 1.0 / r.dir;
+    vec3 t0 = (bmin - r.origin) * invD;
+    vec3 t1 = (bmax - r.origin) * invD;
+    vec3 tsm = min(t0, t1);
+    vec3 tbg = max(t0, t1);
+
+    float tMin = max(max(tsm.x, tsm.y), tsm.z);
+    float tMax = min(min(tbg.x, tbg.y), tbg.z);
+    tMinOut = tMin;
+    tMaxOut = tMax;
+    return tMax >= max(tMin, 0.0);
+}
+
+// Moller-Trumbore
+HitInfo RayTriangle(Ray ray, vec3 v0, vec3 v1, vec3 v2, vec3 n0, vec3 n1, vec3 n2)
+{
+	HitInfo hitInfo;
+	hitInfo.isHit = false;
+	vec3 edge1 = v1 - v0;
+	vec3 edge2 = v2 - v0;
+	vec3 pvec = cross(ray.dir, edge2);
+
+	float det = dot(edge1, pvec);
+	if (abs(det) < 1e-8)
+		return hitInfo;
+	float invDet = 1.0f / det;
+	vec3 tvec = ray.origin - v0;
+
+	float u = dot(tvec, pvec) * invDet;
+	if (u < 0.0f || u > 1.0f)
+		return hitInfo;
+
+	vec3 qvec = cross(tvec, edge1);
+	float v = dot(ray.dir, qvec) * invDet;
+	if (v < 0.0f || u + v > 1.0f)
+		return hitInfo;
+
+	float t = dot(edge2, qvec) * invDet;
+	if (t > 1e-8)
+	{
+		hitInfo.isHit = true;
+		hitInfo.dist = t;
+		hitInfo.hitPoint = ray.origin + ray.dir * t;
+    float w = 1.0f - u - v;
+    hitInfo.normal = normalize(w * n0 + u * n1 + v * n2);
+	}
+	return hitInfo;
+}
+
+HitInfo TraverseBVH(Ray localRay, uint nodeOffset, uint triOffset, Material material)
+{
+	HitInfo closestHit;
+	closestHit.isHit = false;
+	closestHit.dist = 1.0f / 0.0f; //INF
+
+	uint stack[64];
+	int stackPtr = 0;
+	stack[0] = nodeOffset;
+
+	while (stackPtr >= 0)
+	{
+		uint currentNodeIndex = stack[stackPtr--];
+		GPUBVHNode node = bvhNodes[currentNodeIndex];
+
+		float tMin, tMax;
+		if (!RayAABB(localRay, node.minBounds, node.maxBounds, tMin, tMax))
+			continue;
+		if (tMin > closestHit.dist)
+			continue;
+
+		if (node.leftChild == UINT32_MAX) // leaf
+		{
+			for (uint i = 0; i < node.triangleCount; ++i)
+			{
+				uint triangleIndex = bvhNodes[currentNodeIndex].triangleIndex + i;
+				uint vertexIndex0 = triOffset + triangleIndex * 3;
+				uint vertexIndex1 = vertexIndex0 + 1;
+				uint vertexIndex2 = vertexIndex0 + 2;
+
+				vec3 v0 = vertices[vertexIndex0].positionU.xyz;
+				vec3 v1 = vertices[vertexIndex1].positionU.xyz;
+				vec3 v2 = vertices[vertexIndex2].positionU.xyz;
+
+				vec3 n0 = vertices[vertexIndex0].normalV.xyz;
+				vec3 n1 = vertices[vertexIndex1].normalV.xyz;
+				vec3 n2 = vertices[vertexIndex2].normalV.xyz;
+
+				HitInfo hitInfo = RayTriangle(localRay, v0, v1, v2, n0, n1, n2);
+				if (hitInfo.isHit && hitInfo.dist < closestHit.dist)
+				{
+					closestHit = hitInfo;
+					closestHit.material = material;
+				}
+			}
+		}
+		else // internal
+		{
+			if (node.leftChild != UINT32_MAX)
+			{
+				stack[++stackPtr] = node.leftChild;
+				stack[++stackPtr] = node.leftChild + 1;
+			}
+		}
+	}
+
+	return closestHit;
+}
+
+HitInfo TraceInstances(Ray worldRay)
+{
+	HitInfo closestHit;
+	closestHit.isHit = false;
+	closestHit.dist = 1.0f / 0.0f; //INF
+
+    for (uint i = 0u; i < tlasInstances.length(); ++i){
+        TopLevelAccelerationStructure inst = tlasInstances[i];
+
+        float tMin, tMax;
+        if (!RayAABB(worldRay, inst.aabbMin, inst.aabbMax, tMin, tMax))
+            continue;
+        if (tMin > closestHit.dist) continue;
+
+        // 월드 → 로컬
+        Ray localRay;
+        localRay.origin = (inst.invTransform * vec4(worldRay.origin, 1.0)).xyz;
+        localRay.dir    = normalize((inst.invTransform * vec4(worldRay.dir, 0.0)).xyz);
+
+        HitInfo localHit = TraverseBVH(localRay, inst.beginNodeOffset, inst.beginTriangleOffset, inst.material);
+        if (localHit.isHit){
+            // 로컬 결과 → 월드 재투영
+            vec3 worldP = (inst.transform * vec4(localHit.hitPoint, 1.0)).xyz;
+            float worldT = length(worldP - worldRay.origin);
+            if (worldT < closestHit.dist){
+                closestHit = localHit;
+                closestHit.dist = worldT;
+                closestHit.hitPoint = worldP;
+                closestHit.normal = normalize((inst.transform * vec4(localHit.normal, 0.0)).xyz);
+            }
+        }
+    }
+
+  return closestHit;
+}
+
+HitInfo TraceSphere(Ray ray)
 {
 	HitInfo closestHit;
 	closestHit.isHit = false;
@@ -164,7 +310,6 @@ HitInfo CalculateRayCollision(Ray ray)
 	{
 		Sphere sphere = spheres[i];
 		HitInfo hitInfo = RaySphere(ray, sphere.center, sphere.radius);
-
 		if (hitInfo.isHit && hitInfo.dist < closestHit.dist)
 		{
 			closestHit = hitInfo;
@@ -172,6 +317,15 @@ HitInfo CalculateRayCollision(Ray ray)
 		}
 	}
 	return closestHit;
+}
+
+HitInfo CalculateRayCollision(Ray ray)
+{
+	HitInfo hitInfoSphere = TraceSphere(ray);
+	HitInfo hitInfoInstance = TraceInstances(ray);
+	if (!hitInfoSphere.isHit) return hitInfoInstance;
+	if (!hitInfoInstance.isHit) return hitInfoSphere;
+	return (hitInfoSphere.dist < hitInfoInstance.dist) ? hitInfoSphere : hitInfoInstance;
 }
 
 vec3 Trace(Ray ray, inout uint rngState)
@@ -182,23 +336,7 @@ vec3 Trace(Ray ray, inout uint rngState)
 	for (int i = 0; i <= maxBounceCount; ++i)
 	{
 		HitInfo hitInfo = CalculateRayCollision(ray);
-		if (hitInfo.isHit)
-		{
-			Material material = hitInfo.material;
-			ray.origin = hitInfo.hitPoint;
-			vec3 diffuseDir = normalize(hitInfo.normal + RandomDirection(rngState));
-			vec3 specularDir = reflect(ray.dir, hitInfo.normal);
-			specularDir *= sign(dot(hitInfo.normal, specularDir));
-
-			bool isSpecularBounce = (material.specularProbability >= RandomValue(rngState));
-			ray.dir = mix(diffuseDir, specularDir, material.smoothness * int(isSpecularBounce));
-
-			vec3 emittedLight = (material.emittedColor * material.emissionStrength).xyz;
-			incomingLight += emittedLight * rayColor;
-
-			rayColor *= mix(material.color.xyz, vec3(1.0f), isSpecularBounce);
-		}
-		else
+		if (!hitInfo.isHit)
 		{
 			if (isInvironment)
 			{
@@ -214,6 +352,21 @@ vec3 Trace(Ray ray, inout uint rngState)
 			}
 			break;
 		}
+
+		Material material = hitInfo.material;
+
+		vec3 emittedLight = (material.emittedColor * material.emissionStrength).xyz;
+		incomingLight += emittedLight * rayColor;
+
+		vec3 diffuseDir = normalize(hitInfo.normal + RandomDirection(rngState));
+		vec3 specularDir = reflect(ray.dir, hitInfo.normal);
+		specularDir *= sign(dot(hitInfo.normal, specularDir));
+
+		bool isSpecularBounce = (material.specularProbability >= RandomValue(rngState));
+		rayColor *= mix(material.color.xyz, vec3(1.0f), isSpecularBounce);
+
+		ray.origin = hitInfo.hitPoint + hitInfo.normal * 0.00005;
+		ray.dir = normalize(mix(diffuseDir, specularDir, material.smoothness * float(isSpecularBounce)));
 	}
 	
 	return incomingLight;
@@ -221,22 +374,10 @@ vec3 Trace(Ray ray, inout uint rngState)
 
 void main()
 {
-	// 화면 좌표를 클립 공간으로 변환
-	vec4 clipSpace = vec4((gl_GlobalInvocationID.xy / viewportSize * 2.0f - 1.0f), 1.0f, 1.0f); // ?
-	// 클립 공간을 뷰 공간으로 변환
-	vec4 viewSpace = invProjectionMatrix * clipSpace;
-
-	viewSpace /= viewSpace.w;
-
-	// 뷰 공간을 월드 공간으로 변환
-	vec3 worldSpace = (invViewMatrix * vec4(viewSpace.xyz,1.0)).xyz;
-
-	// 구체 교차 검사
-	uvec2 numPixel = screenSize;
 	uvec2 pixelCoord = uvec2(gl_GlobalInvocationID.xy);
-	uint pixelIndex = (pixelCoord.y * numPixel.x + pixelCoord.x);
+	uint pixelIndex = (pixelCoord.y * screenSize.x + pixelCoord.x);
 
-	uint rngState = pixelIndex + numRenderedFrame * 925904;
+	uint rngState = pixelIndex ^ (numRenderedFrame * 1664525 + 1013904223);
 		
 	vec3 total = vec3(0.0f);
 

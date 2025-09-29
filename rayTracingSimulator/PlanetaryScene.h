@@ -54,7 +54,7 @@ namespace ys
 		std::vector<graphics::TopLevelAccelerationStructure> tlasInstances;
 		GLuint ssboTLAS;
 		void* tlasPointer;
-
+		 
 		std::vector<graphics::GPUBVHNode> allBVHNodes;
 		GLuint ssboBVHNodes;
 
